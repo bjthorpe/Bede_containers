@@ -4,24 +4,7 @@ import subprocess, sys, yaml
 from dataclasses import dataclass
 from typing import Optional
 from dacite import from_dict
-
-parser = argparse.ArgumentParser()
-
-parser.add_argument('operation',
-                    choices=['run', 'load', 'build', 'shell'],
-                    help='Operation to perform')
-parser.add_argument('model_name',
-                    type=str,
-                    help='Model name to use')
-parser.add_argument('--config_file',
-                    type=str,
-                    default='container_config.yaml',
-                    help='path to Config file')
-args = parser.parse_args()
-
-container_config=Path(args.config_file)
-model_name=args.model_name
-operation=''
+from ruamel.yaml import YAML
 
 @dataclass
 class Container:
@@ -30,33 +13,85 @@ class Container:
     repo_url: Optional[str]
     shared_directories: Optional[str]
 
-if not container_config.exists():
-    raise ValueError(f"Could not find config file {container_config}")
+def load_config_file(container_config):
+    ''' 
+    Load the config file, do some basic sanity checks 
+    and then return a dict of containers with model names 
+    as the keys.
+    '''
+    container_config=Path(container_config)
+    if not container_config.exists():
+        raise FileNotFoundError(f"Could not find config file {container_config}")
+    
+    if container_config.suffix not in ['.yml','.yaml']:
+        raise ValueError(f"config file {container_config} is not a yaml file, \n it must end in .yml or .yaml")
+    with open(container_config, 'r') as file:
+        all_containers = yaml.safe_load(file)
+    print(all_containers)
+    # create dict of all containers with names as keys
+    Containers = {}
+    for key,value in all_containers.items():
+        result = from_dict(data_class=Container, data=value)
+    #check for duplicate model names
+        if key not in Containers:
+            Containers[key] = result
+        else:
+            raise ValueError(f"Error in config of model {key} this appears to have the same name as a previous model.\
+                            Models in the same config file must not share the same name.")
+        
+        # Handles special case where at least one of these options is required
+        if result.image_file == None and result.repo_url == None:
+            raise ValueError(f"Error in config of model {key} you must \
+                            specify one of either image_file or repo_url in the config file.")
+        # check if shared dir is required and is so does it exist
+        if result.shared_directories != None:
+            shared_dir=Path(result.shared_directories)
+            if not shared_dir.exists():
+                raise ValueError(f"Error in config of model {key}: shared directory has \
+                                been specified does not appear to exist")
+            if not shared_dir.is_dir():
+                raise ValueError(f"Error in config of model {key}: shared directory \
+                                must be a directory.")
 
-with open(container_config, 'r') as file:
-    all_containers = yaml.safe_load(file)
+    return Containers
 
-# create dict of all containers with names as keys
-Containers = {}
-for key,value in all_containers.items():
-    result = from_dict(data_class=Container, data=value)
-    Containers[key] = result
+if __name__=='__main__':
+    parser = argparse.ArgumentParser()
 
-if model_name not in Containers.keys():
-    raise ValueError(f"no model named {model_name} was found in the config file.\n Model must be one of \n{list(Containers.keys())}")
+    parser.add_argument('operation',
+                        choices=['run', 'load', 'build', 'shell'],
+                        help='Operation to perform')
+    parser.add_argument('model_name',
+                        type=str,
+                        help='Model name to use')
+    parser.add_argument('--config_file',
+                        type=str,
+                        default='container_config.yaml',
+                        help='path to Config file')
+    args = parser.parse_args()
 
-if(args.operation=='run'):
-    operation='exec'
-elif(args.operation=='build' or args.operation=='load'):
-    print("build/load not yet implemented")
-elif(args.operation=='shell'):
-    print("shell not yet implemented")
-else:
-    # this path should not happen but just in case.
-    print("How did you get here that was not a valid choice?")
-    sys.exit(1)
+    container_config=Path(args.config_file)
+    model_name=args.model_name
+    operation=''
 
-apptainer_command = f'apptainer {operation} {Containers[model_name].repo_url} ls'
-subprocess.run(apptainer_command,shell=True)
+    Containers = load_config_file(container_config)
+    if model_name not in Containers.keys():
+        raise ValueError(f"no model named {model_name} was found in the config file.\n \
+                            Model must be one of \n{list(Containers.keys())}")
+
+    
+    if(args.operation=='run'):
+        operation='exec'
+    elif(args.operation=='build' or args.operation=='load'):
+        print("build/load not yet implemented")
+    elif(args.operation=='shell'):
+        print("shell not yet implemented")
+    else:
+        # this path should not happen but just in case.
+        print("How did you get here that was not a valid choice?")
+        sys.exit(1)
+
+    apptainer_command = f'apptainer {operation} {Containers[model_name].repo_url} hostname'
+    subprocess.run(apptainer_command,shell=True)
 
 
