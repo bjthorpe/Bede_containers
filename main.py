@@ -4,7 +4,7 @@ import subprocess, sys, yaml
 from dataclasses import dataclass
 from typing import Optional
 from dacite import from_dict
-from ruamel.yaml import YAML
+from check_yaml import DuplicateKeyDetector, DuplicateKeyError
 
 @dataclass
 class Container:
@@ -13,6 +13,41 @@ class Container:
     repo_url: Optional[str]
     shared_directories: Optional[str]
 
+def check_config(config_files:list):
+    '''
+    Function to load list of conmfigs from yaml files, check for errors
+    and create dict of all container configs with names as keys.
+    '''
+
+    Containers = {}
+    for conf_file in config_files:
+        with open(conf_file, 'r') as file:
+            print(f"Reading config from file: {file.name}")
+            all_containers = yaml.load(file,Loader=DuplicateKeyDetector)
+        for key in all_containers:
+            result = from_dict(data_class=Container, data=all_containers[key])
+        #check for duplicate model names
+            if key not in Containers:
+                Containers[key] = result
+            else:
+                raise DuplicateKeyError(f"Error in config of model {key} in {conf_file} this appears to have the same \n \
+                                name as another model. Models must not share the same name.")
+            # Handles special case where at least one of these options is required
+            if result.image_file == None and result.repo_url == None:
+                raise ValueError(f"Error in config of model {key} you must \
+                                specify one of either image_file or repo_url in the config file.")
+            # check if shared dir is required and is so does it exist
+            if result.shared_directories != None:
+                shared_dir=Path(result.shared_directories)
+                if not shared_dir.exists():
+                    raise ValueError(f"Error in config of model {key}: shared directory has \
+                                    been specified but does not appear to exist")
+                if not shared_dir.is_dir():
+                    raise ValueError(f"Error in config of model {key}: shared directory \
+                                must be a directory.")
+        print(f"config file: {file.name} OK" )
+    return Containers
+
 def load_config_file(container_config):
     ''' 
     Load the config file, do some basic sanity checks 
@@ -20,41 +55,28 @@ def load_config_file(container_config):
     as the keys.
     '''
     container_config=Path(container_config)
-    if not container_config.exists():
-        raise FileNotFoundError(f"Could not find config file {container_config}")
-    
-    if container_config.suffix not in ['.yml','.yaml']:
-        raise ValueError(f"config file {container_config} is not a yaml file, \n it must end in .yml or .yaml")
-    with open(container_config, 'r') as file:
-        all_containers = yaml.safe_load(file)
-    print(all_containers)
-    # create dict of all containers with names as keys
-    Containers = {}
-    for key,value in all_containers.items():
-        result = from_dict(data_class=Container, data=value)
-    #check for duplicate model names
-        if key not in Containers:
-            Containers[key] = result
-        else:
-            raise ValueError(f"Error in config of model {key} this appears to have the same name as a previous model.\
-                            Models in the same config file must not share the same name.")
-        
-        # Handles special case where at least one of these options is required
-        if result.image_file == None and result.repo_url == None:
-            raise ValueError(f"Error in config of model {key} you must \
-                            specify one of either image_file or repo_url in the config file.")
-        # check if shared dir is required and is so does it exist
-        if result.shared_directories != None:
-            shared_dir=Path(result.shared_directories)
-            if not shared_dir.exists():
-                raise ValueError(f"Error in config of model {key}: shared directory has \
-                                been specified does not appear to exist")
-            if not shared_dir.is_dir():
-                raise ValueError(f"Error in config of model {key}: shared directory \
-                                must be a directory.")
+
+    if container_config.is_dir():
+        # directory containing config files
+        config_files=[]
+        for file in container_config.glob('*.yaml'):
+            config_files.append(Path(file))
+    else:
+        # single named config file
+        if not container_config.exists():
+            raise FileNotFoundError(f"Could not find config file {container_config}")
+
+        if container_config.suffix not in ['.yml','.yaml']:
+            raise ValueError(f"config file {container_config} is not a yaml file, \n it must end in .yml or .yaml")
+        # create list with single container config file in it
+        config_files=[container_config]
+
+    Containers=check_config(config_files)
 
     return Containers
-
+###############################################################################
+# Main program starts here
+###############################################################################
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
 
@@ -66,17 +88,24 @@ if __name__=='__main__':
                         help='Model name to use')
     parser.add_argument('--config_file',
                         type=str,
-                        default='container_config.yaml',
+                        default=None,
                         help='path to Config file')
     args = parser.parse_args()
 
-    container_config=Path(args.config_file)
+    if args.config_file:
+        container_config=Path(args.config_file)
+    else:
+        container_config=Path('Configs/')
+    
     model_name=args.model_name
     operation=''
-
+    print("*********************************************************************")
+    print(f"***************** Loading Model Config *********************")  
+    print("*********************************************************************")
     Containers = load_config_file(container_config)
+
     if model_name not in Containers.keys():
-        raise ValueError(f"no model named {model_name} was found in the config file.\n \
+        raise ValueError(f"no model named {model_name} was found in a config file.\n \
                             Model must be one of \n{list(Containers.keys())}")
 
     
@@ -90,7 +119,9 @@ if __name__=='__main__':
         # this path should not happen but just in case.
         print("How did you get here that was not a valid choice?")
         sys.exit(1)
-
+    print("*********************************************************************")
+    print(f"***************** Running Model: {model_name} *********************")  
+    print("*********************************************************************")
     apptainer_command = f'apptainer {operation} {Containers[model_name].repo_url} hostname'
     subprocess.run(apptainer_command,shell=True)
 
