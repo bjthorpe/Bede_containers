@@ -1,0 +1,7 @@
+# This is a deliberately invalid container config to test with:
+# Test 1 should fail as there is no description for Example_model1.
+Example_Model1:
+# Should fail as there is No decription
+  image_file: null
+  repo_url: "docker://alpine:latest"
+  shared_directories: null

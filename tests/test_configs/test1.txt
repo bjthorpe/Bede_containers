@@ -1,0 +1,8 @@
+# This is a deliberately invalid container config to test with:
+# This test should fail as although it's a valid yaml file the 
+# file has the wrong extension.
+Example_Model1:
+  description: "this is a .txt not a .yaml file"
+  image_file: null
+  repo_url: "docker://alpine:latest"
+  shared_directories: null

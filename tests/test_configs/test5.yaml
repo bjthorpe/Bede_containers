@@ -1,0 +1,15 @@
+# This is a valid container config to test with:
+# Test 5 checks that we DON'T get an error if a 
+# file contains definitions for more than one container.
+Example_Model1:
+# This spec is valid
+  description: "another example to test config files" 
+  image_file: null
+  repo_url: "docker://alpine:latest"
+  shared_directories: null
+#--------------------------------------
+# This is also valid
+Example_Model2:
+  description: "another example to test config files"   
+  repo_url: "docker://alpine:latest"
+  image_file: null
