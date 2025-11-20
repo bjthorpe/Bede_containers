@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 import subprocess, sys, yaml
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, List
 from dacite import from_dict
 from check_yaml import DuplicateKeyDetector, DuplicateKeyError, is_valid_name
 
@@ -147,13 +147,13 @@ def load_user_config_file(user_config_file):
 
     return User_config
 
-def format_command(operation:str,image:str,definition:str,cmd:str='hostname'):
+def format_command(operation:str,image:str,definition:str,cmd_list:List[str]=['hostname']):
     """ 
     Function to create appropriate apptainer command based on the
     operation requested.
     """
     if operation == "run":
-
+        cmd = " ".join(cmd_list)
         if (not Path(Containers[model_name].image_file).exists()):
             print(f"A container with the name {image} \
               \n could not be found please run build first.")
@@ -196,8 +196,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--user_config_file", type=str, default="UserConfig.yaml", help="path to Config file for user options"
     )
-    args = parser.parse_args()
 
+    #separate out known args and pass the rest for the underlying container to deal with
+    args,container_cmds = parser.parse_known_args()
+    
     if args.config_file:
         container_config = Path(args.config_file)
     else:
@@ -217,7 +219,7 @@ if __name__ == "__main__":
         )
 
     apptainer_command=format_command(args.operation,Containers[model_name].image_file,
-                                     Containers[model_name].container_definition)
+                                     Containers[model_name].container_definition,container_cmds)
     
     if args.operation=='run':
         msg='Running'
