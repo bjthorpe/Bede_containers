@@ -4,5 +4,5 @@
 Example_Model1:
   description: "this is a .txt not a .yaml file"
   image_file: null
-  repo_url: "docker://alpine:latest"
+  container_definition: "docker://alpine:latest"
   shared_directories: null

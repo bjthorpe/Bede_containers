@@ -5,11 +5,11 @@ Example_Model1:
 # This spec is valid
   description: "another example to test config files" 
   image_file: null
-  repo_url: "docker://alpine:latest"
+  container_definition: "docker://alpine:latest"
   shared_directories: null
 #--------------------------------------
 # This is also valid
 Example_Model2:
   description: "another example to test config files"   
-  repo_url: "docker://alpine:latest"
+  container_definition: "docker://alpine:latest"
   image_file: null

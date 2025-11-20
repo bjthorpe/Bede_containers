@@ -1,7 +1,7 @@
-# This is a deliberately invalid container config to test with:
-# Test 2 should fail as Example_model2 has no image file or repo url defined.
-# Note: defining params as null is equivalent to not defining them at all.
+# This is a valid container config to test with:
+# Test 2 checks that if we don't define image file we get a get a valid 
+# ContainerConfig with an auto-generated default image name of "Example_Model2.sif"
 #--------------------------------------
-# This should fail as there is no image file or repo_url
+# This should fail as there is no image file or container_definition
 Example_Model2:
   description: "another example to test config files"

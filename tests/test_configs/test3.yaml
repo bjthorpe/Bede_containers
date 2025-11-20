@@ -1,9 +1,0 @@
-# This is a deliberately invalid container config to test with:
-# Test 2 should fail as Example_model2 has no image file or repo url defined.
-# Note: defining params as null is equivalent to not defining them at all.
-#--------------------------------------
-# This should fail as there is no image file or repo_url
-Example_Model2:
-  description: "another example to test config files" 
-  repo_url: null
-  image_file: null

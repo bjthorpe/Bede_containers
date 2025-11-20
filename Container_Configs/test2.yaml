@@ -1,12 +1,12 @@
 # This is a vaild dummy continer config to test with
-Example_Model1:
+Example_Model3:
   description: 'testing'
   image_file: null
-  repo_url: "docker://alpine:latest"
+  container_definition: "docker://alpine:latest"
   shared_directories: null
 
-Example_Model2:
+Example_Model4:
   description: 'testing'
   image_file: null
-  repo_url: "docker://alpine:latest"
+  container_definition: "docker://alpine:latest"
   shared_directories: null

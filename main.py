@@ -1,21 +1,24 @@
 import argparse
 from pathlib import Path
 import subprocess, sys, yaml
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 from dacite import from_dict
-from check_yaml import DuplicateKeyDetector, DuplicateKeyError
+from check_yaml import DuplicateKeyDetector, DuplicateKeyError, is_valid_name
 
 
 @dataclass
-class Container:
+class ContainerConfig:
     description: str
     image_file: Optional[str]
-    repo_url: Optional[str]
+    container_definition: Optional[str]
+
+@dataclass
+class UserConfig:
     shared_directories: Optional[str]
+    use_GPU: Optional[bool] = field(default=True)
 
-
-def check_config(config_files: list):
+def check_container_config(config_files: list):
     """
     Function to load configs from list of yaml files, check for errors
     and create dict of all container configs with names as keys.
@@ -26,40 +29,72 @@ def check_config(config_files: list):
         with open(conf_file, "r") as file:
             print(f"Reading config from file: {file.name}")
             all_containers = yaml.load(file, Loader=DuplicateKeyDetector)
+
         for key in all_containers:
-            result = from_dict(data_class=Container, data=all_containers[key])
+            # check model name does not contain anything surprising.
+            if not is_valid_name(key):
+                raise ValueError(f"Model name {key} in {file.name} is not valid \
+                                 model names must contain only, letter number and/or underscores")
+            
+            result = from_dict(data_class=ContainerConfig, data=all_containers[key])
             # check for duplicate model names
             if key not in Containers:
                 Containers[key] = result
             else:
                 raise DuplicateKeyError(
-                    f"Error in config of model {key} in {conf_file} this appears to have the same \n \
-                                name as another model. Two models must not share the same name."
+                    f"Error in config of model {key} in {conf_file} \
+                        this appears to have the same \n \
+                        name as another model. Two models must \
+                        not share the same name."
                 )
-            # Handles special case where at least one of these options is required
-            if result.image_file == None and result.repo_url == None:
-                raise ValueError(
-                    f"Error in config of model {key} you must \
-                                specify one of either image_file or repo_url in the config file."
-                )
-            # check if shared dir is required and is so does it exist
-            if result.shared_directories != None:
-                shared_dir = Path(result.shared_directories)
-                if not shared_dir.exists():
-                    raise ValueError(
-                        f"Error in config of model {key}: shared directory has \
-                                    been specified but does not appear to exist"
-                    )
-                if not shared_dir.is_dir():
-                    raise ValueError(
-                        f"Error in config of model {key}: shared directory \
-                                must be a directory."
-                    )
+            # if no image file is given set default image file name as "model_name.sif"  
+            if result.image_file == None:
+                result.image_file=f"Images/{key}.sif"
+            elif result.image_file.endswith(".sif"):
+                pass
+            else:
+                raise ValueError(f"Error in config of Model name {key} in {file.name}:\n\
+                                 image file name {result.image_file} must end in .sif")
+            # if no definition file is given set default definition file name as "model_name.def"  
+            if result.container_definition == None:
+                result.container_definition=f"Definitions/{key}.def"
+            elif result.container_definition.endswith(".def"):
+                pass
+            elif(result.container_definition.startswith("docker://")):
+               pass
+            else:
+                raise ValueError(f"Error in config of Model name {key} in {file.name}:\n\
+                                 container_definition {result.container_definition} must end in .def")
         print(f"{file.name} OK")
     return Containers
 
+def check_user_config_file(config_file:Path):
+    """
+    Function to load user config from yaml file and check for errors.
+    """
 
-def load_config_file(container_config):
+    with open(config_file, "r") as file:
+        print(f"Reading user config from file: {file.name}")
+        tmp_dict = yaml.load(file, Loader=DuplicateKeyDetector)
+
+    User_config = from_dict(data_class=UserConfig, data=tmp_dict)
+# check if shared dir is required and is so does it exist
+    if User_config.shared_directories != None:
+        shared_dir = Path(User_config.shared_directories)
+
+        if not shared_dir.exists():
+            raise ValueError(
+                f"Error in user config file {file.name}: shared directory has \
+                            been specified but does not appear to exist"
+            )
+        if not shared_dir.is_dir():
+            raise ValueError(
+                f"Error in user Config file {file.name}: shared directory \
+                        must be a directory."
+            )
+    return User_config
+
+def load_container_config_file(container_config):
     """
     Load the config file, do some basic sanity checks
     and then return a dict of containers with model names
@@ -79,15 +114,69 @@ def load_config_file(container_config):
 
         if container_config.suffix not in [".yml", ".yaml"]:
             raise ValueError(
-                f"config file {container_config} is not a yaml file, \n it must end in .yml or .yaml"
+                f"config file {container_config} is not a \
+                yaml file, \n the filename must end in .yml \
+                or .yaml"
             )
         # create list with single container config file in it
         config_files = [container_config]
 
-    Containers = check_config(config_files)
+    Containers = check_container_config(config_files)
 
     return Containers
 
+def load_user_config_file(user_config_file):
+    """
+    Load the user config file, do some basic sanity checks.
+    """
+    user_config_file = Path(user_config_file)
+
+    # we want a single named config file
+    if not user_config_file.exists():
+        raise FileNotFoundError(f"Could not find user \
+                                config file {user_config_file}")
+
+    if user_config_file.suffix not in [".yml", ".yaml"]:
+        raise ValueError(
+            f"config file {user_config_file} is not a \
+            yaml file, \n the filename must end in .yml \
+            or .yaml"
+        )
+
+    User_config = check_user_config_file(user_config_file)
+
+    return User_config
+
+def format_command(operation:str,image:str,definition:str,cmd:str='hostname'):
+    """ 
+    Function to create appropriate apptainer command based on the
+    operation requested.
+    """
+    if operation == "run":
+
+        if (not Path(Containers[model_name].image_file).exists()):
+            print(f"A container with the name {image} \
+              \n could not be found please run build first.")
+            sys.exit(1)
+
+        apptainer_command = (f"apptainer exec {image} {cmd}")
+
+    elif operation == "build" or operation == "load":
+        
+        apptainer_command = (
+            f"apptainer build {image} {definition}"
+        )
+
+    elif operation == "shell":
+        apptainer_command =""
+        print("shell not yet implemented")
+        sys.exit(1)
+    else:
+        # this path should not happen but just in case.
+        apptainer_command =""
+        print("How did you get here that was not a valid choice?")
+        sys.exit(1)
+    return apptainer_command
 
 ###############################################################################
 # Main program starts here
@@ -102,21 +191,24 @@ if __name__ == "__main__":
     )
     parser.add_argument("model_name", type=str, help="Model name to use")
     parser.add_argument(
-        "--config_file", type=str, default=None, help="path to Config file"
+        "--config_file", type=str, default=None, help="path to Config file for Models"
+    )    
+    parser.add_argument(
+        "--user_config_file", type=str, default="UserConfig.yaml", help="path to Config file for user options"
     )
     args = parser.parse_args()
 
     if args.config_file:
         container_config = Path(args.config_file)
     else:
-        container_config = Path("Configs/")
+        container_config = Path("Container_Configs/")
 
     model_name = args.model_name
     operation = ""
     print("*********************************************************************")
     print(f"***************** Loading Model Config Files ************************")
     print("*********************************************************************")
-    Containers = load_config_file(container_config)
+    Containers = load_container_config_file(container_config)
 
     if model_name not in Containers.keys():
         raise ValueError(
@@ -124,23 +216,20 @@ if __name__ == "__main__":
                             Model must be one of \n{list(Containers.keys())}"
         )
 
-    if args.operation == "run":
-        operation = "exec"
-    elif args.operation == "build" or args.operation == "load":
-        print("build/load not yet implemented")
-    elif args.operation == "shell":
-        print("shell not yet implemented")
+    apptainer_command=format_command(args.operation,Containers[model_name].image_file,
+                                     Containers[model_name].container_definition)
+    
+    if args.operation=='run':
+        msg='Running'
+    elif args.operation=='build':
+         msg='Building'
     else:
-        # this path should not happen but just in case.
-        print("How did you get here that was not a valid choice?")
-        sys.exit(1)
-    print("*********************************************************************")
-    print(f"***************** Running Model: {model_name} *********************")
-    print("*********************************************************************")
+        msg=''
 
-    apptainer_command = (
-        f"apptainer {operation} {Containers[model_name].repo_url} hostname1"
-    )
+    print("*********************************************************************")
+    print(f"***************** {msg} Model: {model_name} *********************")
+    print("*********************************************************************")
+        
     proc = subprocess.run(apptainer_command, shell=True)
     try:
         proc.check_returncode()

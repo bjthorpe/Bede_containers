@@ -30,3 +30,21 @@ class DuplicateKeyDetector(yaml.SafeLoader):
                 )
             mapping[key] = self.construct_object(value_node, deep=deep)
         return mapping
+
+def is_valid_name(ModelName: str) -> bool:
+    """ 
+    Function to check if container name is valid
+    i.e. contains only letters, numbers, underscores
+    and hyphens.
+    """
+    import re
+    # Check for forbidden characters
+    p= "^[A-Za-z0-9_-]*$" # pattern
+    x = re.search(p,ModelName) 
+
+    if x:
+        check=True
+    else:
+        check=False
+        
+    return check

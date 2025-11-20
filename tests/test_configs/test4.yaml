@@ -1,8 +1,4 @@
-# This is a deliberately invaid container config to test with:
+# This is a deliberately invaid user config to test with:
 # This is Test4 so should fail as shared_directories does not exist
-Example_Model:
-  description: "another bad example to test config files" 
-  image_file: null
-  repo_url: "docker://alpine:latest"
-  shared_directories: "/path/does/not/exist"
+shared_directories: "/path/does/not/exist"
 #--------------------------------------
