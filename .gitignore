@@ -208,3 +208,6 @@ __marimo__/
 # UV
 .python-version
 uv.lock
+
+Images/*.sif 
+Definitions/*.def 

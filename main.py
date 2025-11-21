@@ -13,10 +13,12 @@ class ContainerConfig:
     image_file: Optional[str]
     container_definition: Optional[str]
 
+
 @dataclass
 class UserConfig:
     shared_directories: Optional[str]
     use_GPU: Optional[bool] = field(default=True)
+
 
 def check_container_config(config_files: list):
     """
@@ -33,9 +35,11 @@ def check_container_config(config_files: list):
         for key in all_containers:
             # check model name does not contain anything surprising.
             if not is_valid_name(key):
-                raise ValueError(f"Model name {key} in {file.name} is not valid \
-                                 model names must contain only, letter number and/or underscores")
-            
+                raise ValueError(
+                    f"Model name {key} in {file.name} is not valid \
+                                 model names must contain only, letter number and/or underscores"
+                )
+
             result = from_dict(data_class=ContainerConfig, data=all_containers[key])
             # check for duplicate model names
             if key not in Containers:
@@ -47,28 +51,33 @@ def check_container_config(config_files: list):
                         name as another model. Two models must \
                         not share the same name."
                 )
-            # if no image file is given set default image file name as "model_name.sif"  
+            # if no image file is given set default image file name as "model_name.sif"
             if result.image_file == None:
-                result.image_file=f"Images/{key}.sif"
+                result.image_file = f"Images/{key}.sif"
             elif result.image_file.endswith(".sif"):
                 pass
             else:
-                raise ValueError(f"Error in config of Model name {key} in {file.name}:\n\
-                                 image file name {result.image_file} must end in .sif")
-            # if no definition file is given set default definition file name as "model_name.def"  
+                raise ValueError(
+                    f"Error in config of Model name {key} in {file.name}:\n\
+                                 image file name {result.image_file} must end in .sif"
+                )
+            # if no definition file is given set default definition file name as "model_name.def"
             if result.container_definition == None:
-                result.container_definition=f"Definitions/{key}.def"
+                result.container_definition = f"Definitions/{key}.def"
             elif result.container_definition.endswith(".def"):
                 pass
-            elif(result.container_definition.startswith("docker://")):
-               pass
+            elif result.container_definition.startswith("docker://"):
+                pass
             else:
-                raise ValueError(f"Error in config of Model name {key} in {file.name}:\n\
-                                 container_definition {result.container_definition} must end in .def")
+                raise ValueError(
+                    f"Error in config of Model name {key} in {file.name}:\n\
+                                 container_definition {result.container_definition} must end in .def"
+                )
         print(f"{file.name} OK")
     return Containers
 
-def check_user_config_file(config_file:Path):
+
+def check_user_config_file(config_file: Path):
     """
     Function to load user config from yaml file and check for errors.
     """
@@ -78,7 +87,7 @@ def check_user_config_file(config_file:Path):
         tmp_dict = yaml.load(file, Loader=DuplicateKeyDetector)
 
     User_config = from_dict(data_class=UserConfig, data=tmp_dict)
-# check if shared dir is required and is so does it exist
+    # check if shared dir is required and is so does it exist
     if User_config.shared_directories != None:
         shared_dir = Path(User_config.shared_directories)
 
@@ -93,6 +102,7 @@ def check_user_config_file(config_file:Path):
                         must be a directory."
             )
     return User_config
+
 
 def load_container_config_file(container_config):
     """
@@ -125,6 +135,7 @@ def load_container_config_file(container_config):
 
     return Containers
 
+
 def load_user_config_file(user_config_file):
     """
     Load the user config file, do some basic sanity checks.
@@ -133,8 +144,10 @@ def load_user_config_file(user_config_file):
 
     # we want a single named config file
     if not user_config_file.exists():
-        raise FileNotFoundError(f"Could not find user \
-                                config file {user_config_file}")
+        raise FileNotFoundError(
+            f"Could not find user \
+                                config file {user_config_file}"
+        )
 
     if user_config_file.suffix not in [".yml", ".yaml"]:
         raise ValueError(
@@ -147,36 +160,40 @@ def load_user_config_file(user_config_file):
 
     return User_config
 
-def format_command(operation:str,image:str,definition:str,cmd_list:List[str]=['hostname']):
-    """ 
+
+def format_command(
+    operation: str, image: str, definition: str, cmd_list: List[str] = ["hostname"]
+):
+    """
     Function to create appropriate apptainer command based on the
     operation requested.
     """
     if operation == "run":
         cmd = " ".join(cmd_list)
-        if (not Path(Containers[model_name].image_file).exists()):
-            print(f"A container with the name {image} \
-              \n could not be found please run build first.")
+        if not Path(Containers[model_name].image_file).exists():
+            print(
+                f"A container with the name {image} \
+              \n could not be found please run build first."
+            )
             sys.exit(1)
 
-        apptainer_command = (f"apptainer exec {image} {cmd}")
+        apptainer_command = f"apptainer exec {image} {cmd}"
 
     elif operation == "build" or operation == "load":
-        
-        apptainer_command = (
-            f"apptainer build {image} {definition}"
-        )
+
+        apptainer_command = f"apptainer build {image} {definition}"
 
     elif operation == "shell":
-        apptainer_command =""
+        apptainer_command = ""
         print("shell not yet implemented")
         sys.exit(1)
     else:
         # this path should not happen but just in case.
-        apptainer_command =""
+        apptainer_command = ""
         print("How did you get here that was not a valid choice?")
         sys.exit(1)
     return apptainer_command
+
 
 ###############################################################################
 # Main program starts here
@@ -192,14 +209,17 @@ if __name__ == "__main__":
     parser.add_argument("model_name", type=str, help="Model name to use")
     parser.add_argument(
         "--config_file", type=str, default=None, help="path to Config file for Models"
-    )    
+    )
     parser.add_argument(
-        "--user_config_file", type=str, default="UserConfig.yaml", help="path to Config file for user options"
+        "--user_config_file",
+        type=str,
+        default="UserConfig.yaml",
+        help="path to Config file for user options",
     )
 
-    #separate out known args and pass the rest for the underlying container to deal with
-    args,container_cmds = parser.parse_known_args()
-    
+    # separate out known args and pass the rest for the underlying container to deal with
+    args, container_cmds = parser.parse_known_args()
+
     if args.config_file:
         container_config = Path(args.config_file)
     else:
@@ -218,20 +238,24 @@ if __name__ == "__main__":
                             Model must be one of \n{list(Containers.keys())}"
         )
 
-    apptainer_command=format_command(args.operation,Containers[model_name].image_file,
-                                     Containers[model_name].container_definition,container_cmds)
-    
-    if args.operation=='run':
-        msg='Running'
-    elif args.operation=='build':
-         msg='Building'
+    apptainer_command = format_command(
+        args.operation,
+        Containers[model_name].image_file,
+        Containers[model_name].container_definition,
+        container_cmds,
+    )
+
+    if args.operation == "run":
+        msg = "Running"
+    elif args.operation == "build":
+        msg = "Building"
     else:
-        msg=''
+        msg = ""
 
     print("*********************************************************************")
     print(f"***************** {msg} Model: {model_name} *********************")
     print("*********************************************************************")
-        
+
     proc = subprocess.run(apptainer_command, shell=True)
     try:
         proc.check_returncode()

@@ -2,6 +2,7 @@
 import pytest
 import subprocess
 
+
 def test_Apptainer():
     """
     Test to check Apptainer installation is working correctly by downloading and
