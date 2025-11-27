@@ -160,28 +160,43 @@ def load_user_config_file(user_config_file):
 
     return User_config
 
+def image_exists(image_file:str):
+    if not Path(image_file).exists():
+        print(
+            f"A container with the name {image_file} \
+            \n could not be found please run build first."
+        )
+        sys.exit(1)
+    return
 
 def format_command(
-    operation: str, image: str, definition: str, cmd_list: List[str] = ["hostname"]
+    operation: str, model_name:str, image: str, definition: str, cmd_list: List[str] = ["hostname"]
 ):
     """
     Function to create appropriate apptainer command based on the
     operation requested.
     """
+
     if operation == "run":
         cmd = " ".join(cmd_list)
-        if not Path(Containers[model_name].image_file).exists():
-            print(
-                f"A container with the name {image} \
-              \n could not be found please run build first."
-            )
-            sys.exit(1)
-
+        msg = "Running"
+        image_exists(image)
         apptainer_command = f"apptainer exec {image} {cmd}"
 
     elif operation == "build" or operation == "load":
-
+        msg = "Building"
         apptainer_command = f"apptainer build {image} {definition}"
+
+    elif operation == "start":
+        msg = "Starting"
+        image_exists(image)
+        print("")
+        apptainer_command = f"apptainer instance start {image} {model_name}"
+
+    elif operation == "stop":
+        msg = "Stopping"
+        image_exists(image)
+        apptainer_command = f"apptainer instance stop {model_name}"
 
     elif operation == "shell":
         apptainer_command = ""
@@ -192,23 +207,67 @@ def format_command(
         apptainer_command = ""
         print("How did you get here that was not a valid choice?")
         sys.exit(1)
+
+    print("*********************************************************************")
+    print(f"***************** {msg}: {model_name} *********************")
+    print("*********************************************************************")
+
     return apptainer_command
 
+def parse_cmd_arguments():
+    """ 
+    Function to handle parsing of command line arguments
+    """
 
-###############################################################################
-# Main program starts here
-###############################################################################
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "operation",
-        choices=["run", "load", "build", "shell"],
-        help="Operation to perform",
+    parser = argparse.ArgumentParser(
+        description="A CLI tool for easily running AI/ML containers on Bede.")
+        
+    # Subparser to create subcommands for each operation (run, build, load ect.)
+    subparsers = parser.add_subparsers(
+        dest="operation",
+        help="Operation to perform."
     )
-    parser.add_argument("model_name", type=str, help="Model name to use")
+    # sub-parser for the run operation
+    run_parser = subparsers.add_parser(
+        "run", 
+        help="Run command(s), with the Container")
+
+    run_parser.add_argument(
+        "model_name",
+        type=str, 
+        help="Name of Model to use")
+    
+    run_parser.add_argument(
+        'cmd', 
+        type=str,
+        nargs='*',
+        help="Command(s) to run")
+    
+    # sub-parser for the build operation
+    build_parser = subparsers.add_parser(
+        "build", 
+        help="Build the Container, exactly equivalent to load")
+
+    build_parser.add_argument(
+        "model_name",
+        type=str, 
+        help="Name of Model to use")
+     
+    # sub-parser for the load operation
+    load_parser = subparsers.add_parser(
+        "load",
+        help="Build the Container, exactly equivalent to build")
+
+    load_parser.add_argument(
+        "model_name",
+        type=str, 
+        help="Name of Model to use")
+
     parser.add_argument(
-        "--config_file", type=str, default=None, help="path to Config file for Models"
+        "--config_file", 
+        type=str, 
+        default=None, 
+        help="path to Config file for Models"
     )
     parser.add_argument(
         "--user_config_file",
@@ -218,12 +277,21 @@ if __name__ == "__main__":
     )
 
     # separate out known args and pass the rest for the underlying container to deal with
-    args, container_cmds = parser.parse_known_args()
+    args =parser.parse_args()
 
+    if args.operation != "run":
+        args.cmd=""
+    return args
+###############################################################################
+# Main program starts here
+###############################################################################
+if __name__ == "__main__":
+    args = parse_cmd_arguments()
     if args.config_file:
         container_config = Path(args.config_file)
     else:
         container_config = Path("Container_Configs/")
+    # if args.operation!='run' and container_cmds not None:
 
     model_name = args.model_name
     operation = ""
@@ -240,21 +308,11 @@ if __name__ == "__main__":
 
     apptainer_command = format_command(
         args.operation,
+        model_name,
         Containers[model_name].image_file,
         Containers[model_name].container_definition,
-        container_cmds,
+        args.cmd,
     )
-
-    if args.operation == "run":
-        msg = "Running"
-    elif args.operation == "build":
-        msg = "Building"
-    else:
-        msg = ""
-
-    print("*********************************************************************")
-    print(f"***************** {msg} Model: {model_name} *********************")
-    print("*********************************************************************")
 
     proc = subprocess.run(apptainer_command, shell=True)
     try:
