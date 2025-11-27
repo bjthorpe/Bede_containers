@@ -225,6 +225,7 @@ def parse_cmd_arguments():
     # Subparser to create subcommands for each operation (run, build, load ect.)
     subparsers = parser.add_subparsers(
         dest="operation",
+        required=True,
         help="Operation to perform."
     )
     # sub-parser for the run operation
@@ -238,9 +239,9 @@ def parse_cmd_arguments():
         help="Name of Model to use")
     
     run_parser.add_argument(
-        'cmd', 
+        'cmd',
         type=str,
-        nargs='*',
+        nargs='+',
         help="Command(s) to run")
     
     # sub-parser for the build operation
@@ -262,7 +263,26 @@ def parse_cmd_arguments():
         "model_name",
         type=str, 
         help="Name of Model to use")
+# sub-parser for the start operation
+    start_parser = subparsers.add_parser(
+        "start", 
+        help="Start Container as background process")
 
+    start_parser.add_argument(
+        "model_name",
+        type=str, 
+        help="Name of Model to use")
+# sub-parser for the stop operation
+    stop_parser = subparsers.add_parser(
+        "stop", 
+        help="Stop container that is running in the background")
+
+    stop_parser.add_argument(
+        "model_name",
+        type=str, 
+        help="Name of Model to use")
+    
+# other arguments for main parser
     parser.add_argument(
         "--config_file", 
         type=str, 
@@ -276,12 +296,12 @@ def parse_cmd_arguments():
         help="path to Config file for user options",
     )
 
-    # separate out known args and pass the rest for the underlying container to deal with
     args =parser.parse_args()
 
     if args.operation != "run":
         args.cmd=""
     return args
+
 ###############################################################################
 # Main program starts here
 ###############################################################################
@@ -291,10 +311,8 @@ if __name__ == "__main__":
         container_config = Path(args.config_file)
     else:
         container_config = Path("Container_Configs/")
-    # if args.operation!='run' and container_cmds not None:
 
     model_name = args.model_name
-    operation = ""
     print("*********************************************************************")
     print(f"***************** Loading Model Config Files ************************")
     print("*********************************************************************")
