@@ -1,4 +1,6 @@
-# This is a deliberately invaid user config to test with:
+# This is a deliberately invaid continer config to test with:
 # This is Test4 so should fail as shared_directories does not exist
-shared_directories: "/path/does/not/exist"
+Example_Model2:
+  description: "another example to test config files"
+  shared_directories: "/path/does/not/exist"
 #--------------------------------------

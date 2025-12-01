@@ -1,9 +1,0 @@
-# Configuration file for extra options not specific to a single model
-##################
-# Basic options
-##################
-shared_directories : None # directories to mount inside the container other than users home directory
-##################
-# Advanced options
-##################
-# use_GPU: True # bool option to tun on/off GPU access for container, mostly useful for testing 

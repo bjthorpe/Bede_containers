@@ -65,36 +65,19 @@ def check_container_config(config_files: list):
             else:
                 result.container_definition = check_container_def(result.container_definition)
 
+            # do some checks for shared directory if defined
+            if result.shared_directories is not None:
+                P = Path(result.shared_directories)
+                if not P.exists():
+                    err_msg = f"The shared directory {result.shared_directories} \n \
+                        defined in {file.name} does not exist. "
+                    raise FileNotFoundError(err_msg)
+                if P.is_file():
+                    err_msg = f"The shared directory {result.shared_directories} \n \
+                    defined in {file.name} should be directory not a file."
+                    raise FileNotFoundError(err_msg)
         print(f"{file.name} OK")
     return Containers
-
-
-def check_user_config_file(config_file: Path):
-    """
-    Function to load user config from yaml file and check for errors.
-    """
-
-    with open(config_file, "r") as file:
-        print(f"Reading user config from file: {file.name}")
-        tmp_dict = yaml.load(file, Loader=DuplicateKeyDetector)
-
-    User_config = from_dict(data_class=UserConfig, data=tmp_dict)
-    # check if shared dir is required and is so does it exist
-    if User_config.shared_directories is not None:
-        shared_dir = Path(User_config.shared_directories)
-
-        if not shared_dir.exists():
-            raise ValueError(
-                f"Error in user config file {file.name}: shared directory has \
-                            been specified but does not appear to exist"
-            )
-        if not shared_dir.is_dir():
-            raise ValueError(
-                f"Error in user Config file {file.name}: shared directory \
-                        must be a directory."
-            )
-    return User_config
-
 
 def load_container_config_file(container_config):
     """
@@ -126,31 +109,6 @@ def load_container_config_file(container_config):
     Containers = check_container_config(config_files)
 
     return Containers
-
-
-def load_user_config_file(user_config_file):
-    """
-    Load the user config file, do some basic sanity checks.
-    """
-    user_config_file = Path(user_config_file)
-
-    # we want a single named config file
-    if not user_config_file.exists():
-        raise FileNotFoundError(
-            f"Could not find user \
-                                config file {user_config_file}"
-        )
-
-    if user_config_file.suffix not in [".yml", ".yaml"]:
-        raise ValueError(
-            f"config file {user_config_file} is not a \
-            yaml file, \n the filename must end in .yml \
-            or .yaml"
-        )
-
-    User_config = check_user_config_file(user_config_file)
-
-    return User_config
 
 def image_exists(image_file:str|None):
     if image_file == None:
@@ -303,12 +261,6 @@ def parse_cmd_arguments():
         type=str, 
         default=None, 
         help="path to Config file for Models"
-    )
-    parser.add_argument(
-        "--user_config_file",
-        type=str,
-        default="UserConfig.yaml",
-        help="path to Config file for user options",
     )
     parser.add_argument(
         "--debug",
