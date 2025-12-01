@@ -1,0 +1,6 @@
+# This is a deliberately invalid container config to test with:
+# This is Test4b so should fail as shared_directories is defined as a file not a directory
+Example_Model2:
+  description: "another example to test config files"
+  shared_directories: "tests/test_configs/test4b.yaml"
+#--------------------------------------

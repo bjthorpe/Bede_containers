@@ -31,6 +31,9 @@ def test_no_shared_dir():
     with pytest.raises(FileNotFoundError):
         load_container_config_file("tests/test_configs/test4.yaml")
 
+def test_shared_dir_is_file():
+    with pytest.raises(FileNotFoundError):
+        load_container_config_file("tests/test_configs/test4b.yaml")
 
 def test_multi_defintion_1():
     load_container_config_file("tests/test_configs/test5.yaml")
