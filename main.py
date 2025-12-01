@@ -12,13 +12,14 @@ class ContainerConfig:
     description: str
     image_file: Optional[str]
     container_definition: Optional[str]
-    encryption_key: Optional[str]    
+    encryption_key: Optional[str]
     shared_directories: Optional[str]
+    encrypted: Optional[bool]= field(default=False)
     registry: Optional[str] = field(default="docker")
     read_only: Optional[bool] = field(default=False)
     use_GPU: Optional[bool] = field(default=True)
     sandbox: Optional[bool] = field(default=False)
-    
+
 def check_container_config(config_files: list):
     """
     Function to load configs from list of yaml files, check for errors
