@@ -19,7 +19,7 @@ def test_Apptainer():
     assert proc.returncode == 0
 
 
-# Only run if using pytest without --no_GPU flag
+# Skip test if using pytest with --no_GPU flag
 @pytest.mark.GPU
 def test_GPU():
     """

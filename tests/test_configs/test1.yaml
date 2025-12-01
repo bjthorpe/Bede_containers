@@ -3,5 +3,5 @@
 Example_Model1:
 # Should fail as there is No decription
   image_file: null
-  container_definition: "docker://alpine:latest"
+  container_definition: "alpine:latest"
   shared_directories: null
