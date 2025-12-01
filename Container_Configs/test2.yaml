@@ -2,11 +2,11 @@
 Example_Model3:
   description: 'testing'
   image_file: null
-  container_definition: "docker://alpine:latest"
+  container_definition: "alpine:latest"
   shared_directories: null
 
 Example_Model4:
   description: 'testing'
   image_file: null
-  container_definition: "docker://alpine:latest"
+  container_definition: "alpine:latest"
   shared_directories: null
