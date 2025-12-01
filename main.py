@@ -174,22 +174,35 @@ def format_command(
     Function to create appropriate apptainer command based on the
     operation requested.
     """
+    image = Container.image_file
+    definition = Container.container_definition
+    # check for encryption and add appropriate flags
+    if Container.encrypted:
+        if Container.encryption_key != None:
+            enc_flag = '--passkey'
+        else:
+            enc_flag = f'--pem-path {Container.encryption_key}'
+    else:
+        enc_flag = ''
+    if Container.sandbox:
+        sand_flag = '--sandbox'
+    else:
+        sand_flag = ''
 
     if operation == "run":
         cmd = " ".join(cmd_list)
         msg = "Running"
         image_exists(image)
-        apptainer_command = f"apptainer exec {image} {cmd}"
+        apptainer_command = f"apptainer exec {enc_flag} {image} {cmd}"
 
     elif operation == "build" or operation == "load":
         msg = "Building"
-        apptainer_command = f"apptainer build {image} {definition}"
+        apptainer_command = f"apptainer build {sand_flag} {enc_flag} {image} {definition}"
 
     elif operation == "start":
         msg = "Starting"
         image_exists(image)
-        print("")
-        apptainer_command = f"apptainer instance start {image} {model_name}"
+        apptainer_command = f"apptainer instance start {enc_flag} {image} {model_name}"
 
     elif operation == "stop":
         msg = "Stopping"
@@ -333,8 +346,7 @@ if __name__ == "__main__":
     apptainer_command = format_command(
         args.operation,
         model_name,
-        Containers[model_name].image_file,
-        Containers[model_name].container_definition,
+        Containers[model_name],
         args.cmd,
         args.debug
     )
