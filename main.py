@@ -164,7 +164,11 @@ def image_exists(image_file:str|None):
     return
 
 def format_command(
-    operation: str, model_name:str, image: str, definition: str, cmd_list: List[str] = ["hostname"]
+    operation: str, 
+    model_name:str, 
+    Container:ContainerConfig, 
+    cmd_list: List[str] = ["hostname"],
+    debug=False
 ):
     """
     Function to create appropriate apptainer command based on the
@@ -205,7 +209,11 @@ def format_command(
     print("*********************************************************************")
     print(f"***************** {msg}: {model_name} *********************")
     print("*********************************************************************")
-
+    if debug:
+        print("Debug enabled")
+        print("current config will run the following command:")
+        print(apptainer_command)
+        sys.exit(0)
     return apptainer_command
 
 def parse_cmd_arguments():
@@ -289,7 +297,11 @@ def parse_cmd_arguments():
         default="UserConfig.yaml",
         help="path to Config file for user options",
     )
-
+    parser.add_argument(
+        "--debug",
+        action='store_true',
+        help="Print generated Apptainer command instead of running container, useful for sanity checking",
+    )
     args =parser.parse_args()
 
     if args.operation != "run":
@@ -324,6 +336,7 @@ if __name__ == "__main__":
         Containers[model_name].image_file,
         Containers[model_name].container_definition,
         args.cmd,
+        args.debug
     )
 
     proc = subprocess.run(apptainer_command, shell=True)
