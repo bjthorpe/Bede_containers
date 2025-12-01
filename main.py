@@ -152,7 +152,9 @@ def load_user_config_file(user_config_file):
 
     return User_config
 
-def image_exists(image_file:str):
+def image_exists(image_file:str|None):
+    if image_file == None:
+        image_file=''
     if not Path(image_file).exists():
         print(
             f"A container with the name {image_file} \
