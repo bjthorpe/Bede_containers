@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List
 from dacite import from_dict
 from check_yaml import DuplicateKeyDetector, DuplicateKeyError, is_valid_name
-
+from check_URI import check_container_def
 
 @dataclass
 class ContainerConfig:
@@ -17,7 +17,7 @@ class ContainerConfig:
 @dataclass
 class UserConfig:
     shared_directories: Optional[str]
-    use_GPU: Optional[bool] = field(default=True)
+    registry: Optional[str] = field(default="docker")
 
 
 def check_container_config(config_files: list):
@@ -69,10 +69,8 @@ def check_container_config(config_files: list):
             elif result.container_definition.startswith("docker://"):
                 pass
             else:
-                raise ValueError(
-                    f"Error in config of Model name {key} in {file.name}:\n\
-                                 container_definition {result.container_definition} must end in .def"
-                )
+                result.container_definition = check_container_def(result.container_definition)
+
         print(f"{file.name} OK")
     return Containers
 
@@ -311,7 +309,7 @@ if __name__ == "__main__":
         container_config = Path(args.config_file)
     else:
         container_config = Path("Container_Configs/")
-
+    
     model_name = args.model_name
     print("*********************************************************************")
     print(f"***************** Loading Model Config Files ************************")
