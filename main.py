@@ -12,13 +12,11 @@ class ContainerConfig:
     description: str
     image_file: Optional[str]
     container_definition: Optional[str]
-
-
-@dataclass
-class UserConfig:
+    encryption_key: Optional[str]    
     shared_directories: Optional[str]
     registry: Optional[str] = field(default="docker")
-
+    read_only: Optional[bool] = field(default=False)
+    use_GPU: Optional[bool] = field(default=True)    
 
 def check_container_config(config_files: list):
     """
@@ -64,10 +62,6 @@ def check_container_config(config_files: list):
             # if no definition file is given set default definition file name as "model_name.def"
             if result.container_definition == None:
                 result.container_definition = f"Definitions/{key}.def"
-            elif result.container_definition.endswith(".def"):
-                pass
-            elif result.container_definition.startswith("docker://"):
-                pass
             else:
                 result.container_definition = check_container_def(result.container_definition)
 
@@ -86,7 +80,7 @@ def check_user_config_file(config_file: Path):
 
     User_config = from_dict(data_class=UserConfig, data=tmp_dict)
     # check if shared dir is required and is so does it exist
-    if User_config.shared_directories != None:
+    if User_config.shared_directories is not None:
         shared_dir = Path(User_config.shared_directories)
 
         if not shared_dir.exists():
