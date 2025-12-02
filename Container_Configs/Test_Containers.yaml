@@ -1,0 +1,12 @@
+# This is a vaild dummy continer config to test with
+TestContainer:
+  description: 'This container creates a cowsay container for testing'
+  group: Test
+  container_definition: Definitions/cowsay.def
+# This is an ollama continer config to test with
+Ollama_Test_Container:
+  description: 'latest version of ollama pulled from dockerhub, for testing'
+  image_file: null
+  group: Test
+  container_definition: "ollama/ollama:0.13.1-rc0"
+  shared_directories: null

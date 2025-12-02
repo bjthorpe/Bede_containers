@@ -14,13 +14,14 @@ class ContainerConfig:
     container_definition: Optional[str]
     encryption_key: Optional[str]
     shared_directories: Optional[str]
+    group: Optional[str] = field(default="None")
     encrypted: Optional[bool]= field(default=False)
     registry: Optional[str] = field(default="docker")
     read_only: Optional[bool] = field(default=False)
     use_GPU: Optional[bool] = field(default=True)
     sandbox: Optional[bool] = field(default=False)
 
-def check_container_config(config_files: list):
+def check_container_config(config_files: list,verbose:bool=False):
     """
     Function to load configs from list of yaml files, check for errors
     and create dict of all container configs with names as keys.
@@ -29,7 +30,8 @@ def check_container_config(config_files: list):
     Containers = {}
     for conf_file in config_files:
         with open(conf_file, "r") as file:
-            print(f"Reading config from file: {file.name}")
+            if verbose:
+                print(f"Reading config from file: {file.name}")
             all_containers = yaml.load(file, Loader=DuplicateKeyDetector)
 
         for key in all_containers:
@@ -78,10 +80,11 @@ def check_container_config(config_files: list):
                     err_msg = f"The shared directory {result.shared_directories} \n \
                     defined in {file.name} should be directory not a file."
                     raise FileNotFoundError(err_msg)
-        print(f"{file.name} OK")
+        if verbose:
+            print(f"{file.name} OK")
     return Containers
 
-def load_container_config_file(container_config):
+def load_container_config_file(container_config,verbose:bool=False):
     """
     Load the config file, do some basic sanity checks
     and then return a dict of containers with model names
@@ -108,7 +111,7 @@ def load_container_config_file(container_config):
         # create list with single container config file in it
         config_files = [container_config]
 
-    Containers = check_container_config(config_files)
+    Containers = check_container_config(config_files,verbose=verbose)
 
     return Containers
 
@@ -237,7 +240,19 @@ def parse_cmd_arguments():
     load_parser.add_argument(
         "model_name",
         type=str, 
-        help="Name of Model to use")
+        help="Name of Model to use")    
+    
+    # sub-parser for the list operation
+    list_parser = subparsers.add_parser(
+        "list",
+        help="List available containers")
+
+    list_parser.add_argument(
+        "--group",
+        type=str,
+        default='', 
+        help="optional group of containers to list")
+    
 # sub-parser for the start operation
     start_parser = subparsers.add_parser(
         "start", 
@@ -269,27 +284,50 @@ def parse_cmd_arguments():
         action='store_true',
         help="Print generated Apptainer command instead of running container, useful for sanity checking",
     )
+    parser.add_argument(
+        "--verbose","-v",
+        action='store_true',
+        help="Print extra output, useful for debugging",
+    )
     args =parser.parse_args()
 
     if args.operation != "run":
         args.cmd=""
     return args
 
+def list_containers(Containers:dict,group:str=''):
+    print("*******************************")
+    print("Currently available containers:")
+    print("*******************************")
+    print(f"Name:   Group:  Description:")
+    print("-----------------------------")  
+    for key, value in Containers.items():
+        if value.group == group or group=='':
+            output = f"{key}    {value.group}   {value.description}"
+            print(output)
+
+
 ###############################################################################
 # Main program starts here
 ###############################################################################
-if __name__ == "__main__":
+def main():
     args = parse_cmd_arguments()
     if args.config_file:
         container_config = Path(args.config_file)
     else:
         container_config = Path("Container_Configs/")
-    
+    if args.verbose:
+        print("*********************************************************************")
+        print(f"***************** Loading Model Config Files ************************")
+        print("*********************************************************************")
+    Containers = load_container_config_file(container_config,verbose=args.verbose)
+
+    if args.operation.lower() == 'list':
+        # just list all detected containers then exit
+        list_containers(Containers, args.group)
+        exit(0)
+
     model_name = args.model_name
-    print("*********************************************************************")
-    print(f"***************** Loading Model Config Files ************************")
-    print("*********************************************************************")
-    Containers = load_container_config_file(container_config)
 
     if model_name not in Containers.keys():
         raise ValueError(
@@ -310,3 +348,6 @@ if __name__ == "__main__":
         proc.check_returncode()
     except subprocess.CalledProcessError as e:
         print(f"An error occurred. Container exited with the exit code {e.returncode}:")
+
+if __name__ == "__main__":
+    main()

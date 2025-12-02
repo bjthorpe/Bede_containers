@@ -5,7 +5,7 @@ from dacite import exceptions
 from check_yaml import DuplicateKeyError
 
 sys.path.append("../")
-from main import load_container_config_file
+from run_container import load_container_config_file
 
 
 def test_config_not_exist():

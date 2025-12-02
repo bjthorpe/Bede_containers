@@ -13,11 +13,7 @@ Example_Model:
   image_file: null # if not suplied this defaults to Images/<model_name>.sif
 # Definiton file for building the continer, must end with .def
   container_definition: "Defintitions/ExampleModel1.def" # if not suplied this defaults to Defintions/<model_name>.def
-# alternativley you can use an OCI link to dockerhub (string stating with docker://)
-  #container_definition: "docker://alpine:latest" 
-
-  # This is for specifying any additional directories you wish
-  # to access
-  shared_directories: null # Note: The users home directory is accessible by default so does not need to be specified here.
+# alternativley you can use an OCI link to dockerhub (string stating with )
+  #container_definition: "alpine:latest"
 #--------------------------------------
 
