@@ -325,7 +325,7 @@ def main():
     if args.operation.lower() == 'list':
         # just list all detected containers then exit
         list_containers(Containers, args.group)
-        exit(0)
+        return
 
     model_name = args.model_name
 

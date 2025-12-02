@@ -1,0 +1,7 @@
+*******************************
+Currently available containers:
+*******************************
+Name:   Group:  Description:
+-----------------------------
+TestContainer    Test   This container creates a cowsay container for testing
+Ollama_Test_Container    Test   latest version of ollama pulled from dockerhub, for testing
