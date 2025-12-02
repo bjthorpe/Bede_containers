@@ -6,7 +6,10 @@ from typing import Optional, List
 from dacite import from_dict
 from check_yaml import DuplicateKeyDetector, DuplicateKeyError, is_valid_name
 from check_URI import check_container_def
+import logging
 
+logging.basicConfig(level=logging.INFO,filename='logs/log.log',filemode='w',
+                format="%(asctime)s - %(levelname)s - %(message)s")
 @dataclass
 class ContainerConfig:
     description: str
@@ -21,7 +24,7 @@ class ContainerConfig:
     use_GPU: Optional[bool] = field(default=True)
     sandbox: Optional[bool] = field(default=False)
 
-def check_container_config(config_files: list,verbose:bool=False):
+def check_container_config(config_files: list):
     """
     Function to load configs from list of yaml files, check for errors
     and create dict of all container configs with names as keys.
@@ -30,8 +33,7 @@ def check_container_config(config_files: list,verbose:bool=False):
     Containers = {}
     for conf_file in config_files:
         with open(conf_file, "r") as file:
-            if verbose:
-                print(f"Reading config from file: {file.name}")
+            logging.info(f"Reading config from file: {file.name}")
             all_containers = yaml.load(file, Loader=DuplicateKeyDetector)
 
         for key in all_containers:
@@ -80,11 +82,11 @@ def check_container_config(config_files: list,verbose:bool=False):
                     err_msg = f"The shared directory {result.shared_directories} \n \
                     defined in {file.name} should be directory not a file."
                     raise FileNotFoundError(err_msg)
-        if verbose:
-            print(f"{file.name} OK")
+        logging.info(f"{file.name} OK")      
+    print(f"All config files look OK")
     return Containers
 
-def load_container_config_file(container_config,verbose:bool=False):
+def load_container_config_file(container_config):
     """
     Load the config file, do some basic sanity checks
     and then return a dict of containers with model names
@@ -111,7 +113,7 @@ def load_container_config_file(container_config,verbose:bool=False):
         # create list with single container config file in it
         config_files = [container_config]
 
-    Containers = check_container_config(config_files,verbose=verbose)
+    Containers = check_container_config(config_files)
 
     return Containers
 
@@ -284,11 +286,7 @@ def parse_cmd_arguments():
         action='store_true',
         help="Print generated Apptainer command instead of running container, useful for sanity checking",
     )
-    parser.add_argument(
-        "--verbose","-v",
-        action='store_true',
-        help="Print extra output, useful for debugging",
-    )
+
     args =parser.parse_args()
 
     if args.operation != "run":
@@ -316,11 +314,10 @@ def main():
         container_config = Path(args.config_file)
     else:
         container_config = Path("Container_Configs/")
-    if args.verbose:
-        print("*********************************************************************")
-        print(f"***************** Loading Model Config Files ************************")
-        print("*********************************************************************")
-    Containers = load_container_config_file(container_config,verbose=args.verbose)
+    print("*********************************************************************")
+    print(f"***************** Loading Model Config Files ************************")
+    print("*********************************************************************")
+    Containers = load_container_config_file(container_config)
 
     if args.operation.lower() == 'list':
         # just list all detected containers then exit

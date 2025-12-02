@@ -211,3 +211,6 @@ uv.lock
 
 Images/*.sif 
 Definitions/*.def 
+
+#logfiles
+logs/log.log
