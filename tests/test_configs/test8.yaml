@@ -1,0 +1,9 @@
+# This is a deliberately invalid container config to test with:
+# Test 8 checks that using the run command on an image file 
+# that does not exist gives a ValueError 
+Example_Model1:
+# This spec is valid
+  description: "another example to test config files"
+  image_file: 'test.sif'
+  container_definition: "alpine:latest"
+

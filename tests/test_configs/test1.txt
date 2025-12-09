@@ -3,6 +3,4 @@
 # file has the wrong extension.
 Example_Model1:
   description: "this is a .txt not a .yaml file"
-  image_file: null
   container_definition: "alpine:latest"
-  shared_directories: null

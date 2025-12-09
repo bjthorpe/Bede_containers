@@ -1,34 +1,25 @@
 import re
 from pathlib import Path
-# define regex's to check all 5 types of URI used by Apptainer
+# define regex's to check 3 common types of URI used by Apptainer
 LIBRARY_RE = re.compile(
-    r"^library://"
-    r"(?P<user>[a-z0-9][a-z0-9_.-]*)/"
-    r"(?P<collection>[a-z0-9][a-z0-9_.-]*)/"
-    r"(?P<container>[a-z0-9][a-z0-9_.-]*)"
-    r"\:(?P<tag>[A-Za-z0-9._-]+)$"
+    r"^library://([A-Za-z0-9_.-]*)"
+    r"/*([/A-Za-z0-9_.-]*)"
+    r"/*([A-Za-z0-9_.-]+)"
+    r"\:([A-Za-z0-9._-]+)$"
 )
 
 DOCKER_RE = re.compile(
-    r"^docker://"
-    r"([a-zA-Z0-9.-]+(?:\:[0-9]+)?/)*"
-    r"[a-z0-9._-]+"
-    r"\:(?P<tag>[A-Za-z0-9._-]+)$"
+    r"^docker://([A-Za-z0-9_.-]*)"
+    r"/*([/A-Za-z0-9_.-]*)"
+    r"/*([A-Za-z0-9_.-]+)"
+    r"\:([A-Za-z0-9._-]+)$"
 )
 
 ORAS_RE = re.compile(
-    r"^oras://"
-    r"(?P<registry>[a-zA-Z0-9.-]+(?:\:[0-9]+)?)"
-    r"/(?P<repo>[a-z0-9._/-]+)"
-    r"\:(?P<tag>[A-Za-z0-9._-]+)$"      
+    r"^oras://([A-Za-z0-9_.-]*)"
+    r"/*([/A-Za-z0-9_.-]*)"
+    r"/*([A-Za-z0-9_.-]+)$"
 )
-
-SHUB_RE = re.compile(
-    r"^shub://[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$"
-)
-
-HTTP_RE = re.compile(r"^https?://.+$")
-
 
 def validate_uri(v):
     """ 
@@ -41,19 +32,9 @@ def validate_uri(v):
     # library:// (tag required)
     if LIBRARY_RE.match(v):
         return True
-
-    # oras:// (tag required)
+    # oras:// (no tag required)
     if ORAS_RE.match(v):
-        return True
-
-    # shub:// (no tags)
-    if SHUB_RE.match(v):
-        return True
-
-    # https:// (no tags)
-    if HTTP_RE.match(v):
-        return True
-    
+        return True   
     # not a vaild URI
     return False
 
@@ -61,8 +42,8 @@ def validate_uri(v):
 def check_container_def(definition:str)->str:
             
     # first check if string is a valid uri,
-    # that is it starts with: docker://, shub://, 
-    # http(s)://, library:// or oras:// 
+    # that is it starts with: docker://, 
+    # library:// or oras:// 
     # and has a tag if needed.
 
     if validate_uri(definition):
@@ -72,15 +53,16 @@ def check_container_def(definition:str)->str:
     elif validate_uri(f"docker://{definition}"):
         return f"docker://{definition}"
     
-    # still not a uri so check if its a valid path to a file
-    p = Path(definition)
-    if p.is_absolute() or "/" in definition or definition.endswith(".def"):
-        return definition
-    # no idea what this is so raise error
-    msg = f" Container definition: {definition} is not valid. \n \
-          This must be a path to a file, or an Apptainer URI \n \
-            (with tag if required)"
-    
-    raise ValueError(msg)
+    else:
+        # still not a uri so check if its a valid path to a file
+        p = Path(definition)
+        if p.exists() and p.is_file() and definition.endswith(".def"):
+            return definition
+        # no idea what this is so raise error
+        msg = f" Container definition: {definition} is not valid. \n \
+            This must be a path to an existing file, or an Apptainer URI \n \
+                (with tag if required)"
+        
+        raise ValueError(msg)
 
 

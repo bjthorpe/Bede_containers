@@ -3,10 +3,13 @@ TestContainer:
   description: 'This container creates a cowsay container for testing'
   group: Test
   container_definition: Definitions/cowsay.def
+  
+TestContainer2:
+  description: 'A simple ubuntu container, pulled from docker'
+  group: Test
+  container_definition: ubuntu:latest
 # This is an ollama continer config to test with
 Ollama_Test_Container:
   description: 'latest version of ollama pulled from dockerhub, for testing'
-  image_file: null
   group: Test
   container_definition: "ollama/ollama:0.13.1-rc0"
-  shared_directories: null

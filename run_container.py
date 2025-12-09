@@ -4,7 +4,8 @@ import subprocess, sys, yaml
 from dataclasses import dataclass, field
 from typing import Optional, List
 from dacite import from_dict
-from check_yaml import DuplicateKeyDetector, DuplicateKeyError, is_valid_name
+from check_yaml import DuplicateKeyDetector, DuplicateKeyError 
+from check_yaml import is_valid_name
 from check_URI import check_container_def
 import logging
 
@@ -13,16 +14,32 @@ logging.basicConfig(level=logging.INFO,filename='logs/log.log',filemode='w',
 @dataclass
 class ContainerConfig:
     description: str
-    image_file: Optional[str]
-    container_definition: Optional[str]
-    encryption_key: Optional[str]
-    shared_directories: Optional[str]
-    group: Optional[str] = field(default="None")
-    encrypted: Optional[bool]= field(default=False)
-    registry: Optional[str] = field(default="docker")
-    read_only: Optional[bool] = field(default=False)
-    use_GPU: Optional[bool] = field(default=True)
-    sandbox: Optional[bool] = field(default=False)
+    image_file: str = field(default="")
+    container_definition: str = field(default="")
+    encryption_key: str = field(default="")
+    shared_directories: str = field(default="")
+    group: str = field(default="None")
+    encrypted: bool= field(default=False)
+    registry: str = field(default="docker")
+    read_only: bool = field(default=False)
+    use_GPU: bool = field(default=True)
+    sandbox: bool = field(default=False)
+    
+class CMD_FormatError(Exception):
+    """
+    Custom Exception to be raised when using an operation that
+    is not valid or that has not been implemented. This should 
+    not normally be raised as its handled in the command line 
+    options but this is here in case someone adds an option 
+    in the future but forgets to handle it in format_command.
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
 
 def check_container_config(config_files: list):
     """
@@ -56,7 +73,7 @@ def check_container_config(config_files: list):
                         not share the same name."
                 )
             # if no image file is given set default image file name as "model_name.sif"
-            if result.image_file == None:
+            if result.image_file == "":
                 result.image_file = f"Images/{key}.sif"
             elif result.image_file.endswith(".sif"):
                 pass
@@ -66,13 +83,13 @@ def check_container_config(config_files: list):
                                  image file name {result.image_file} must end in .sif"
                 )
             # if no definition file is given set default definition file name as "model_name.def"
-            if result.container_definition == None:
+            if result.container_definition == "":
                 result.container_definition = f"Definitions/{key}.def"
             else:
                 result.container_definition = check_container_def(result.container_definition)
 
             # do some checks for shared directory if defined
-            if result.shared_directories is not None:
+            if result.shared_directories != "":
                 P = Path(result.shared_directories)
                 if not P.exists():
                     err_msg = f"The shared directory {result.shared_directories} \n \
@@ -117,40 +134,36 @@ def load_container_config_file(container_config):
 
     return Containers
 
-def image_exists(image_file:str|None):
-    if image_file == None:
-        image_file=''
+def image_exists(image_file:str):
     if not Path(image_file).exists():
-        print(
-            f"A container with the name {image_file} \
+        msg = f"A container with the name {image_file} \
             \n could not be found please run build first."
-        )
-        sys.exit(1)
+        raise FileNotFoundError(msg)
     return
 
 def format_command(
-    operation: str, 
+    operation: str,
     model_name:str, 
     Container:ContainerConfig, 
-    cmd_list: List[str] = ["hostname"],
-    debug=False
+    cmd_list: List[str] = ["hostname"]
 ):
     """
-    Function to create appropriate apptainer command based on the
+    Function to create appropriate Apptainer command based on the
     operation requested.
     """
+
     image = Container.image_file
     definition = Container.container_definition
     # check for encryption and add appropriate flags
     if Container.encrypted:
-        if Container.encryption_key != None:
-            enc_flag = '--passkey'
+        if Container.encryption_key != "":
+            enc_flag = ' --passkey '
         else:
-            enc_flag = f'--pem-path {Container.encryption_key}'
+            enc_flag = f' --pem-path {Container.encryption_key} '
     else:
         enc_flag = ''
     if Container.sandbox:
-        sand_flag = '--sandbox'
+        sand_flag = ' --sandbox '
     else:
         sand_flag = ''
 
@@ -158,40 +171,32 @@ def format_command(
         cmd = " ".join(cmd_list)
         msg = "Running"
         image_exists(image)
-        apptainer_command = f"apptainer exec {enc_flag} {image} {cmd}"
+        apptainer_command = f"apptainer exec {enc_flag}{image} {cmd}"
 
     elif operation == "build" or operation == "load":
         msg = "Building"
-        apptainer_command = f"apptainer build {sand_flag} {enc_flag} {image} {definition}"
+        apptainer_command = f"apptainer build {sand_flag}{enc_flag}{image} {definition}"
 
     elif operation == "start":
         msg = "Starting"
         image_exists(image)
-        apptainer_command = f"apptainer instance start {enc_flag} {image} {model_name}"
+        apptainer_command = f"apptainer instance start {enc_flag}{image} {model_name}"
 
     elif operation == "stop":
         msg = "Stopping"
         image_exists(image)
         apptainer_command = f"apptainer instance stop {model_name}"
 
-    elif operation == "shell":
-        apptainer_command = ""
-        print("shell not yet implemented")
-        sys.exit(1)
     else:
         # this path should not happen but just in case.
         apptainer_command = ""
-        print("How did you get here that was not a valid choice?")
-        sys.exit(1)
+        raise CMD_FormatError(f"{operation} is Not a valid operation," + \
+                               "This should not happen. Did you add an option" + \
+                               "and forget to update format_command?")
 
     print("*********************************************************************")
     print(f"***************** {msg}: {model_name} *********************")
     print("*********************************************************************")
-    if debug:
-        print("Debug enabled")
-        print("current config will run the following command:")
-        print(apptainer_command)
-        sys.exit(0)
     return apptainer_command
 
 def parse_cmd_arguments():
@@ -308,7 +313,7 @@ def list_containers(Containers:dict,group:str=''):
 ###############################################################################
 # Main program starts here
 ###############################################################################
-def main():
+def main() -> int:
     args = parse_cmd_arguments()
     if args.config_file:
         container_config = Path(args.config_file)
@@ -336,15 +341,21 @@ def main():
         args.operation,
         model_name,
         Containers[model_name],
-        args.cmd,
-        args.debug
+        args.cmd
     )
+    if args.debug:
+        print("Debug enabled")
+        print("current config will run the following command:")
+        print(apptainer_command)
+    else:
+        proc = subprocess.run(apptainer_command, shell=True)
+        try:
+            proc.check_returncode()
+        except subprocess.CalledProcessError as e:
+            print(f"An error occurred. Container exited with the exit code {e.returncode}:")
 
-    proc = subprocess.run(apptainer_command, shell=True)
-    try:
-        proc.check_returncode()
-    except subprocess.CalledProcessError as e:
-        print(f"An error occurred. Container exited with the exit code {e.returncode}:")
+    #return code is used by pytest to check code ran successfully
+    return 0
 
 if __name__ == "__main__":
-    main()
+    return_code = main()

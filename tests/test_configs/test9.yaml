@@ -1,0 +1,9 @@
+# This is a deliberately invalid container config to test with:
+# Test 9 checks that using an image file that does not end in .sif
+# gives a ValueError.
+Example_Model1:
+# This spec is valid
+  description: "another example to test config files"
+  image_file: 'test.image'
+  container_definition: "alpine:latest"
+

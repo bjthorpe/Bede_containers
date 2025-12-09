@@ -10,7 +10,7 @@ Example_Model:
 # Optional values:
 # --------------------------------------
 # The path to a local container image, must end with .sif
-  image_file: null # if not suplied this defaults to Images/<model_name>.sif
+#  image_file: null # if not suplied this defaults to Images/<model_name>.sif
 # Definiton file for building the continer, must end with .def
   container_definition: "Defintitions/ExampleModel1.def" # if not suplied this defaults to Defintions/<model_name>.def
 # alternativley you can use an OCI link to dockerhub (string stating with )

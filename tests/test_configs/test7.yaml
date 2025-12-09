@@ -1,14 +1,12 @@
 # This is a deliberately invalid container config to test with:
-# Test 6 checks for an edge case as we should get an error 
-# if a file contains definitions for more than one container 
-# with the same name.
+# Test 7 checks that a model name that contains anything but 
+# letter, numbers, hyphens and underscores is caught as invalid. 
 Example_Model1:
 # This spec is valid
   description: "another example to test config files" 
   container_definition: "alpine:latest"
 #--------------------------------------
-# This is also technically valid but has the same name as 
-# previous continer so should give an error
-Example_Model1:
+# This is not valid as the name contains a space
+Example Model1:
   description: "another example to test config files"   
   image_file: 'test.sif'
