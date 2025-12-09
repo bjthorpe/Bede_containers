@@ -1,6 +1,7 @@
 # tests for lcomand line argumants
 import pytest
 import sys
+import os
 from util_functions import check_test_output
 from run_container import main, format_command,CMD_FormatError 
 from run_container import check_container_config
@@ -53,6 +54,7 @@ def test_build_and_run(monkeypatch):
     # now run continer
     monkeypatch.setattr("sys.argv", [prog,"run", "TestContainer2","hostname"])
     return_code = main()
+    os.remove("Images/TestContainer2.sif")
     assert return_code == 0
 
 def test_unknown_operation():
