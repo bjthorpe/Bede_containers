@@ -1,0 +1,19 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post -c /bin/bash
+    apt-get update && \
+    apt-get install -y locales && \
+    locale-gen en_US.UTF-8 && \
+    apt -y install cowsay
+
+%startscript
+    # Run cowsay with a default message
+    /usr/games/cowsay "Moo!!!"
+
+%runscript
+    # Run cowsay with a given message
+    /usr/games/cowsay $1
+
+%environment
+    PATH=/usr/games/

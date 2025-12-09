@@ -213,7 +213,8 @@ Images/*.sif
 !Images/Example_Model1.sif
 !Images/Example_Model2.sif
 !Images/TestContainer.sif
-Definitions/*.def 
+Definitions/*.def
+!Definitions/cowsay.def
 
 #logfiles
 logs/log.log
