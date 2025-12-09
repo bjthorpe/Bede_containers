@@ -348,8 +348,9 @@ def main() -> int:
         try:
             proc.check_returncode()
         except subprocess.CalledProcessError as e:
-            print(f"An error occurred. Container exited with the exit code {e.returncode}:")
-
+            print (f"An error occurred. Container exited with the exit code {e.returncode}:")
+            return e.returncode
+        return proc.returncode
     #return code is used by pytest to check code ran successfully
     return 0
 
