@@ -162,10 +162,6 @@ def format_command(
             enc_flag = f' --pem-path {Container.encryption_key} '
     else:
         enc_flag = ''
-    if Container.sandbox:
-        sand_flag = ' --sandbox '
-    else:
-        sand_flag = ''
 
     if operation == "run":
         cmd = " ".join(cmd_list)
@@ -175,7 +171,7 @@ def format_command(
 
     elif operation == "build" or operation == "load":
         msg = "Building"
-        apptainer_command = f"apptainer build {sand_flag}{enc_flag}{image} {definition}"
+        apptainer_command = f"apptainer build {enc_flag}{image} {definition}"
 
     elif operation == "start":
         msg = "Starting"
