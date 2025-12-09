@@ -60,3 +60,14 @@ def test_unknown_operation():
     containers = check_container_config(["tests/test_configs/valid.yaml"])
     with pytest.raises(CMD_FormatError):
         format_command("unknown","test",containers['Example_Model1'])
+
+def test_config_file_flag(monkeypatch):
+    '''
+    check config_file flag works
+    '''
+    # run main program subbing in new cmd arguments
+    prog = sys.argv[0]
+    conf_file = "tests/test_configs/valid.yaml"
+    monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Example_Model1","hostname"])
+    return_code = main()
+    assert return_code == 0
