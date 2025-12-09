@@ -63,7 +63,7 @@ def test_unknown_operation():
 
 def test_config_file_flag(monkeypatch):
     '''
-    check config_file flag works
+    check config_file flag works with single file
     '''
     # run main program subbing in new cmd arguments
     prog = sys.argv[0]
@@ -71,3 +71,30 @@ def test_config_file_flag(monkeypatch):
     monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Example_Model1","hostname"])
     return_code = main()
     assert return_code == 0
+
+def test_config_file_flag_dir(monkeypatch):
+    '''
+    check config_file flag works with a directory
+    '''
+    # run main program subbing in new cmd arguments
+    prog = sys.argv[0]
+    conf_file = "tests/test_configs/multiple_files_test/"
+# use model denied in valid.yaml
+    monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Example_Model1","hostname"])
+    return_code = main()
+    assert return_code == 0
+# now try different model defined in valid2.yaml
+    monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Example_Model2","hostname"])
+    return_code = main()
+    assert return_code == 0   
+
+def test_model_name_flag(monkeypatch):
+    '''
+    check that giving a model_name that is not in the config raises a ValueError
+    '''
+    # run main program subbing in new cmd arguments
+    prog = sys.argv[0]
+    conf_file = "tests/test_configs/valid.yaml"
+    monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Test","hostname"])
+    with pytest.raises(ValueError):
+        return_code = main()

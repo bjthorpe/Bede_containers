@@ -209,7 +209,10 @@ __marimo__/
 .python-version
 uv.lock
 
-Images/*.sif 
+Images/*.sif
+!Images/Example_Model1.sif
+!Images/Example_Model2.sif
+!Images/TestContainer.sif
 Definitions/*.def 
 
 #logfiles

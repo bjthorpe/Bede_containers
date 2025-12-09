@@ -1,0 +1,4 @@
+# This is a valid container config to test with:
+Example_Model2:
+  container_definition: "alpine:latest"
+  description: "a perfectly valid test container"
