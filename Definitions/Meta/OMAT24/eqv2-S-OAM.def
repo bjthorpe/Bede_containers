@@ -15,8 +15,7 @@ From: pytorch/pytorch:2.4.1-cuda12.1-cudnn9-devel
     if [ ! -f /models/FairChem/eqV2_31M_omat_mp_salex.pt]; then
         echo "Model not found locally so downloading."
         /scripts/huggingface.exp {{ HF_AUTH }} && \
-        hf download facebook/OMAT24  eqV2_31M_omat_mp_salex.pt && \
-        mv /root/.cache/huggingface/hub/models--facebook--OMAT24/snapshots/*/eqV2_31M_omat_mp_salex.pt /models/FairChem
+        hf download facebook/OMAT24  eqV2_31M_omat_mp_salex.pt --local-dir /models/FairChem && \
         hf auth logout
     else
         echo "Model found locally so not downloading."
