@@ -7,13 +7,14 @@ from dacite import from_dict
 from check_yaml import DuplicateKeyDetector, DuplicateKeyError 
 from check_yaml import is_valid_name
 from check_URI import check_container_def
+from util_functions import create_build_options
 import logging
 
 logging.basicConfig(level=logging.INFO,filename='logs/log.log',filemode='w',
                 format="%(asctime)s - %(levelname)s - %(message)s")
 @dataclass
 class ContainerConfig:
-    description: str
+    description: str 
     image_file: str = field(default="")
     container_definition: str = field(default="")
     encryption_key: str = field(default="")
@@ -24,6 +25,7 @@ class ContainerConfig:
     read_only: bool = field(default=False)
     use_GPU: bool = field(default=True)
     sandbox: bool = field(default=False)
+    build_options:dict = field(default_factory=dict)
     
 class CMD_FormatError(Exception):
     """
@@ -171,7 +173,8 @@ def format_command(
 
     elif operation == "build" or operation == "load":
         msg = "Building"
-        apptainer_command = f"apptainer build {enc_flag}{image} {definition}"
+        build_options_str = create_build_options(Container.build_options)
+        apptainer_command = f"apptainer build {build_options_str} {enc_flag}{image} {definition}"
 
     elif operation == "start":
         msg = "Starting"
