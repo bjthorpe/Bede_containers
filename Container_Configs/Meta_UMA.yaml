@@ -1,0 +1,31 @@
+# Config file for models from MetaAi
+
+# Meta UMA: A Family of Universal Models for Atoms (Jan 2026)
+# https://huggingface.co/facebook/UMA
+# published paper: https://ai.meta.com/research/publications/uma-a-family-of-universal-models-for-atoms/
+
+# Checkpoints for UMA models, trained on the entirety of OC20, ODAC23, OMat24, OMC25, and OMol25 datasets.
+uma-s-1:
+  description: 'Version 1.0 of UMA model, trained using 150M parameters with 6M active.'
+  group: MetaAi
+  container_definition: Definitions/Meta/UMA.def
+  build_options: {'HF_AUTH':'1234ABCD','checkpoint_file':'uma-s-1.pt'}
+
+uma-s-1p1:
+  description: 'Version 1.1 of UMA model, trained using 150M parameters with 6M active.'
+  group: MetaAi
+  container_definition: Definitions/Meta/UMA.def
+  build_options: {'HF_AUTH':'1234ABCD','checkpoint_file':'uma-s-1p1.pt'}
+
+uma-m-1p1:
+  description: 'Version 1.1 of UMA model, trained using 1.4B parameters with 50M active.'
+  group: MetaAi
+  container_definition: Definitions/Meta/UMA.def
+  build_options: {'HF_AUTH':'1234ABCD','checkpoint_file':'uma-m-1p1.pt'}
+
+# Not yet released (as of Jan 2026)
+# uma-l-1.1:
+#   description: 'Version 1.1 of UMA model, trained using 700M parameters with 700M active.'
+#   group: MetaAi
+#   container_definition: Definitions/Meta/UMA.def
+#   build_options: {'HF_AUTH':'1234ABCD','checkpoint_file':'uma-l-1p1.pt'}
