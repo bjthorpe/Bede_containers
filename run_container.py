@@ -174,7 +174,7 @@ def format_command(
     elif operation == "build" or operation == "load":
         msg = "Building"
         build_options_str = create_build_options(Container.build_options)
-        apptainer_command = f"apptainer build {build_options_str} {enc_flag}{image} {definition}"
+        apptainer_command = f"apptainer build{build_options_str} {enc_flag}{image} {definition}"
 
     elif operation == "start":
         msg = "Starting"
