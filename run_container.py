@@ -295,14 +295,14 @@ def parse_cmd_arguments():
     return args
 
 def list_containers(Containers:dict,group:str=''):
-    print("*******************************")
+    print("*************************************")
     print("Currently available containers:")
-    print("*******************************")
-    print(f"Name:   Group:  Description:")
-    print("-----------------------------")  
+    print("*************************************")
+    print(f"Name:         Group:    Description:")
+    print("-------------------------------------")  
     for key, value in Containers.items():
         if value.group == group or group=='':
-            output = f"{key}    {value.group}   {value.description}"
+            output = f"{key:<15}{value.group:<10}{value.description}"
             print(output)
 
 
