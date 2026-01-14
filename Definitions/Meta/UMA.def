@@ -1,0 +1,22 @@
+Bootstrap: docker
+#From: python:3.12
+From: pytorch/pytorch:2.4.1-cuda12.1-cudnn9-devel
+%files
+    scripts/huggingface.exp /scripts/huggingface.exp
+
+%post
+    apt update
+    DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -y wget expect git g++
+    pip3 install fairchem-core==2.13 torch_scatter torch_sparse
+
+# check to see if we have the model if not download 
+# it with the provided API key.
+    /scripts/huggingface.exp {{ HF_AUTH }} && \
+    hf download facebook/UMA  {{ checkpoint_file }} && \
+    hf auth logout
+
+%startscript
+    python3 --version
+
+%runscript
+    python3 --version
