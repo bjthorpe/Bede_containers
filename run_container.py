@@ -120,16 +120,34 @@ def check_container_config(config_files: list):
                 )
 
             # do some checks for shared directory if defined
-            if result.shared_directories != "":
-                P = Path(result.shared_directories)
-                if not P.exists():
-                    err_msg = f"The shared directory {result.shared_directories} \n \
-                        defined in {file.name} does not exist. "
-                    raise FileNotFoundError(err_msg)
-                if P.is_file():
-                    err_msg = f"The shared directory {result.shared_directories} \n \
-                    defined in {file.name} should be directory not a file."
-                    raise FileNotFoundError(err_msg)
+            if result.shared_directories != []:
+                for directory in result.shared_directories:
+                    P = Path(directory)
+                    if not P.exists():
+                        err_msg = f"The shared directory {directory} \n \
+                            defined in {file.name} does not exist. "
+                        raise FileNotFoundError(err_msg)
+                    if P.is_file():
+                        err_msg = f"The shared directory {directory} \n \
+                        defined in {file.name} should be directory not a file."
+                        raise ValueError(err_msg)
+                    
+                    if P.is_symlink():
+                        err_msg = f"The shared directory {directory} \n \
+                        contains a symbolic link. Apptainer will not  \n \
+                        be able to mount this. \n \
+                        Please use the absolute path to this directory"
+                        raise ValueError(err_msg)
+                    
+            # do some checks for automatic mount flags if needed
+            if result.dont_mount != []:
+                available_flags = ['home','cwd']
+                for flag in result.dont_mount:
+                    if flag not in available_flags:
+                        err_msg = f"{flag} is not a valid option for the dont_mount parameter in {file.name} \n \
+                        This should be one of {available_flags}"
+                        raise ValueError(err_msg)
+
         logging.info(f"{file.name} OK")
     msg = "All config files look good"
     cmd_output(msg,sentinel=" ")
@@ -189,6 +207,39 @@ def format_command(
 
     image = Container.image_file
     definition = Container.container_definition
+    # turn off automatic mounts if requested
+    if Container.dont_mount != []:
+        # remove auto-mount for users home directory if requested
+        flags = []
+        if 'home' in Container.dont_mount:
+            logging.info(f"Removing access to {Path.home()} within the container")
+            flags.append("home")
+        else:
+            logging.info(f"Granting access to {Path.home()} within the container")
+        # remove auto-mount for current working directory if requested
+        if 'cwd' in Container.dont_mount:
+            logging.info(f"Removing access to {Path.cwd()} within the container")
+            flags.append("cwd")
+        else:
+            logging.info(f"Granting access to {Path.cwd()} within the container")
+
+        # convert list of flags into comma separated string
+        flags_str = ''.join([item + ',' for item in flags])[:-1]
+        no_mnt_flag = f" --no-mount {flags_str} "
+    else:
+        no_mnt_flag = ""
+
+    # and bind mounts for directories if requested
+    if Container.shared_directories != []:
+        dirs = []
+        for directory in Container.shared_directories:
+            logging.info(f"Granting access to {directory} within the container")
+            dirs.append(directory)
+        # convert list of flags into comma separated string
+        flags_str = ''.join([item + ',' for item in dirs])[:-1]
+        bind_opt = f" --bind {flags_str} "
+    else:
+        bind_opt = "" 
     # check for encryption and add appropriate flags
     if Container.encrypted:
         if Container.encryption_key != "":
@@ -202,19 +253,19 @@ def format_command(
         cmd = " ".join(cmd_list)
         msg = "Running"
         image_exists(image)
-        apptainer_command = f"apptainer exec {enc_flag}{image} {cmd}"
+        apptainer_command = f"apptainer exec {enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
 
     elif operation == "build" or operation == "load":
         msg = "Building"
         build_options_str = create_build_options(Container.build_options)
         apptainer_command = (
-            f"apptainer build{build_options_str} {enc_flag}{image} {definition}"
+            f"apptainer build{build_options_str} {enc_flag}{gpu_flag}{image} {definition}"
         )
 
     elif operation == "start":
         msg = "Starting"
         image_exists(image)
-        apptainer_command = f"apptainer instance start {enc_flag}{image} {model_name}"
+        apptainer_command = f"apptainer instance start {enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name}"
 
     elif operation == "stop":
         msg = "Stopping"
