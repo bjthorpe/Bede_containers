@@ -27,10 +27,7 @@ class ContainerConfig:
     shared_directories: str = field(default="")
     group: str = field(default="None")
     encrypted: bool = field(default=False)
-    registry: str = field(default="docker")
-    read_only: bool = field(default=False)
-    use_GPU: bool = field(default=True)
-    sandbox: bool = field(default=False)
+    Device: str = field(default='cuda')
     build_options: dict = field(default_factory=dict)
 
 
