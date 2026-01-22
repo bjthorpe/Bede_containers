@@ -2,3 +2,4 @@
 Example_Model1:
   container_definition: "alpine:latest"
   description: "a perfectly valid test container"
+  gpu: False

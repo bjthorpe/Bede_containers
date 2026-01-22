@@ -41,7 +41,7 @@ def test_no_shared_dir():
         load_container_config_file("tests/test_configs/test4.yaml")
 
 def test_shared_dir_is_file():
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ValueError):
         load_container_config_file("tests/test_configs/test4b.yaml")
 
 def test_multi_definition_1():
@@ -64,9 +64,9 @@ def test_format_command():
     test to check function that creates Apptainer commands
     '''
     valid_commands = [
-        "apptainer exec Images/Example_Model1.sif hostname",
-        "apptainer build Images/Example_Model1.sif docker://alpine:latest",
-        "apptainer instance start Images/Example_Model1.sif Test",
+        "apptainer exec --nv Images/Example_Model1.sif hostname",
+        "apptainer build --nv Images/Example_Model1.sif docker://alpine:latest",
+        "apptainer instance start --nv Images/Example_Model1.sif Test",
         "apptainer instance stop Test"
     ]
 

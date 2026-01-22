@@ -270,19 +270,19 @@ def format_command(
         cmd = " ".join(cmd_list)
         msg = "Running"
         image_exists(image)
-        apptainer_command = f"apptainer exec {enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
+        apptainer_command = f"apptainer exec{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
 
     elif operation == "build" or operation == "load":
         msg = "Building"
         build_options_str = create_build_options(Container.build_options)
         apptainer_command = (
-            f"apptainer build{build_options_str} {enc_flag}{gpu_flag}{image} {definition}"
+            f"apptainer build{build_options_str}{enc_flag}{gpu_flag}{image} {definition}"
         )
 
     elif operation == "start":
         msg = "Starting"
         image_exists(image)
-        apptainer_command = f"apptainer instance start {enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name}"
+        apptainer_command = f"apptainer instance start{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name}"
 
     elif operation == "stop":
         msg = "Stopping"

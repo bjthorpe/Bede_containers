@@ -1,18 +1,23 @@
-*********************************************************************
-***************** Loading Model Config Files ************************
-*********************************************************************
-All config files look OK
-*************************************
-Currently available containers:
-*************************************
-Name:         Group:    Description:
--------------------------------------
+********************************************************************************
+************************** Loading Model Config Files **************************
+********************************************************************************
+                           All config files look good                           
+****************************************
+*** Currently available containers: ****
+****************************************
+Name:          Group:    Description:
+----------------------------------------
 uma-s-1        MetaAi    Version 1.0 of UMA model, trained using 150M parameters with 6M active.
 uma-s-1p1      MetaAi    Version 1.1 of UMA model, trained using 150M parameters with 6M active.
 uma-m-1p1      MetaAi    Version 1.1 of UMA model, trained using 1.4B parameters with 50M active.
 TestContainer  Test      This container creates a cowsay container for testing
 TestContainer2 Test      A simple ubuntu container, pulled from docker
 Ollama_Test_ContainerTest      latest version of ollama pulled from dockerhub, for testing
+NequIP-OAM-XL  NequIP    NequIP GNN foundational potential for materials "extra-large" model, optimised for accuracy.
+Allegro-OAM-L  NequIP    Allegro GNN foundational potential for materials.
+NequIP-OAM-L   NequIP    NequIP GNN foundational potential for materials "large" model, optimised for speed and accuracy.
+Allegro-MP-L   NequIP    "Matbench-compliant" Allegro potential for materials "large" model, optimised for speed and accuracy.
+NequIP-MP-L    NequIP    "Matbench-compliant" NequIP GNN potential for materials "large" model, optimised for speed and accuracy.
 eqV2-L-DeNS    MetaAi    EquiformerV2 model trained on MPtrj dataset only, using 153M parameters with denoising augmentation objectives (DeNS).
 eqV2-M-DeNS    MetaAi    EquiformerV2 model trained on MPtrj dataset only, using 86M parameters with denoising augmentation objectives (DeNS).
 eqV2-S-DeNS    MetaAi    EquiformerV2 model trained on MPtrj dataset only, using 31M parameters with denoising augmentation objectives (DeNS).
