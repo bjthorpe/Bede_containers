@@ -1,5 +1,5 @@
 import sys
-
+from pathlib import Path
 
 def initialise_error(message: str):
     print(f"ERROR: {message}")
@@ -24,7 +24,7 @@ def set_argument_defaults(model_group: str, arguments: dict):
             arguments["device"] = "omol"
 
 
-def initialise_model(ML_model_option: str, models_dir="/models", **kwargs):
+def initialise_model(ML_model_option: str, **kwargs):
     """
     Initialise the ML model, only need to do this once
     Params:
@@ -33,6 +33,7 @@ def initialise_model(ML_model_option: str, models_dir="/models", **kwargs):
                       See the docs or comments on specific models for
                       what params are used.
     """
+    default_models_dir="/models",
     # dicts of valid model names and corresponding checkpoint files
     Meta_OMat24 = {
         "esen-30m-oam": "esen_30m_oam.pt",
@@ -58,6 +59,14 @@ def initialise_model(ML_model_option: str, models_dir="/models", **kwargs):
 
     MatterSim = {"mattersim": "MatterSim-v1.0.0-5M.pth"}
 
+    NequIP = {
+        'nequip-oam-xl':'NequIP-OAM-XL-0.1.nequip.zip',
+        'allegro-oam-l':'Allegro-OAM-L-0.1.nequip.zip',
+        'nequip-oam-l':'NequIP-OAM-L-0.1.nequip.zip',
+        'allegro-mp-l':'Allegro-MP-L-0.1.nequip.zip',
+        'nequip-mp-l':'NequIP-MP-L-0.1.nequip.zip',
+    }
+
     ML_model_option_lower = ML_model_option.lower()
     ASE_Calculator = None
 
@@ -66,6 +75,8 @@ def initialise_model(ML_model_option: str, models_dir="/models", **kwargs):
     #
     #         Params:
     #           "device" - what device to target.can be either 'cpu' or 'cuda'.
+    #           "model_path" - Path inside the container to compiled model. 
+    #                          Default is to look inside /models/MatterSim.
     ###############################################################################
     if ML_model_option_lower in MatterSim:
 
@@ -77,9 +88,13 @@ def initialise_model(ML_model_option: str, models_dir="/models", **kwargs):
             )
             exit()
 
-        Compiled_Model_Path = (
-            f"{models_dir}/MatterSim/{MatterSim[ML_model_option_lower]}"
-        )
+        if 'model_path' not in kwargs:
+            Compiled_Model_Path = (
+                f"{default_models_dir}/MatterSim/{MatterSim[ML_model_option_lower]}"
+            )
+        else:
+            Compiled_Model_Path = kwargs['model_path']
+
         ASE_Calculator = MatterSimCalculator(
             load_path=Compiled_Model_Path, device=kwargs["device"]
         )
@@ -131,7 +146,51 @@ def initialise_model(ML_model_option: str, models_dir="/models", **kwargs):
             Meta_UMA[ML_model_option_lower], device=kwargs["device"]
         )
         ASE_Calculator = FAIRChemCalculator(predictor, task_name=kwargs["task"])
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # NequIP and Allegro
+    #
+    # NequIP is an open-source code for machine learning on atomic systems.
+    # Allegro is an extension package for NequIP
+    #
+    # https://nequip.readthedocs.io/en/latest/integrations/ase.html
+    #
+    #       Params:
+    #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
+    #           "checkpoint_file" - Path to either a checkpoint file (.ckpt) 
+    #                               from training or a packaged model file 
+    #                               (.nequip.zip).
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    #           Note about "checkpoint_file":
+    #
+    #           Packaged model files (in .nequip.zip format ) for each supported 
+    #           model can be found in the models/NequIP directory. This directory
+    #           is automatically copied into the container at build time as 
+    #           /models/NequIP. 
+    # 
+    #           These will be used by default if the checkpoint_file argument 
+    #           is not supplied. To use a custom path you need to ensure that 
+    #           it is accessible to the container. This can be achieved by 
+    #           either copying the files at build time using the container 
+    #           definition file or setting shared_directories in the .yaml 
+    #           file for the model parameters (see the docs for more details).
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif ML_model_option_lower in NequIP:
+        from nequip.ase import NequIPCalculator
 
+        if "checkpoint_file" not in kwargs:
+            checkpoint_file = NequIP[ML_model_option_lower]
+        else:
+            checkpoint_file = f"{default_models_dir}/NequIP/{kwargs['checkpoint_file']}"
+
+        compile_path=f"{default_models_dir}/NequIP/{ML_model_option_lower}.nequip.pt2"
+# Call bash script to Compile the model if needed
+        if not Path(checkpoint_file).exists():
+            compile_nequip_model()
+        
+        ASE_Calculator = NequIPCalculator.from_compiled_model(
+            compile_path=compile_path,
+            device=kwargs['device'])
     else:
         initialise_error(f"Unknown module {ML_model_option}")
     return ASE_Calculator

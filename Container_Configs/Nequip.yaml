@@ -1,0 +1,36 @@
+# Config file for models from the mir group (Nequip)
+
+# https://www.nequip.net/models
+
+# Checkpoints for Models from Nequip and Allegro
+
+# These models are pre-trained on the OMat24 dataset, 
+# and fine-tuned on the sAlex and MPTrj datasets.'
+
+NequIP-OAM-XL:
+  description: 'NequIP GNN foundational potential for materials "extra-large" model, optimised for accuracy.' 
+  group: NequIP
+  container_definition: Definitions/NequIP/NequIP.def
+
+Allegro-OAM-L:
+  description: 'Allegro GNN foundational potential for materials.'
+  group: NequIP
+  container_definition: Definitions/NequIP/Allegro.def
+
+NequIP-OAM-L:
+  description: 'NequIP GNN foundational potential for materials "large" model, optimised for speed and accuracy.' 
+  group: NequIP
+  container_definition: Definitions/NequIP/NequIP.def
+  dont_mount: ['home','cwd']
+  shared_directories: ['/mnt/b8e9a3be-9bf1-423d-aeaa-72a35a7648c8']
+# These models were only trained on the MPTrj dataset making them matbench-discovery 
+# 'compliant' though notably less accurate than the other models.
+Allegro-MP-L:
+  description: '"Matbench-compliant" Allegro potential for materials "large" model, optimised for speed and accuracy.' 
+  group: NequIP
+  container_definition: Definitions/NequIP/Allegro.def
+
+NequIP-MP-L:
+  description: '"Matbench-compliant" NequIP GNN potential for materials "large" model, optimised for speed and accuracy.'
+  group: NequIP
+  container_definition: Definitions/NequIP/NequIP.def
