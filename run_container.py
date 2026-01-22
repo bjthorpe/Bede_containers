@@ -16,6 +16,26 @@ logging.basicConfig(
     filemode="w",
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
+def cmd_output(message:str,length=80,sentinel='*',log=False,sep=" "):
+    '''
+    useful function for formatting logging/cmd output
+    Params:
+
+    message - string to output
+    length - number of characters to output
+    sentinel - character used to fill majority of line
+    sep - character used to create space either side of the message
+    length - max length of the outputted message
+    log - flag to set if output goes to just the log or both log and stdout
+    '''
+    message = sep + message + sep
+    result = f"{message:{sentinel}^{length}}"
+    
+    if log:
+        logging.info(result)
+    else:
+        logging.info(result)
+        print(result)
 
 
 @dataclass
@@ -24,8 +44,9 @@ class ContainerConfig:
     image_file: str = field(default="")
     container_definition: str = field(default="")
     encryption_key: str = field(default="")
-    shared_directories: str = field(default="")
-    group: str = field(default="None")
+    shared_directories: List[str] = field(default_factory=list)
+    dont_mount: List[str] = field(default_factory=list)
+    group: str = field(default="")
     encrypted: bool = field(default=False)
     Device: str = field(default='cuda')
     build_options: dict = field(default_factory=dict)
@@ -55,9 +76,10 @@ def check_container_config(config_files: list):
     """
 
     Containers = {}
+    cmd_output("Checking all config files.",log=True,sentinel=" ")
     for conf_file in config_files:
         with open(conf_file, "r") as file:
-            logging.info(f"Reading config from file: {file.name}")
+            cmd_output(f"Reading config from file: {file.name}",sentinel='-',log=True)
             all_containers = yaml.load(file, Loader=DuplicateKeyDetector)
 
         for key in all_containers:
@@ -109,7 +131,8 @@ def check_container_config(config_files: list):
                     defined in {file.name} should be directory not a file."
                     raise FileNotFoundError(err_msg)
         logging.info(f"{file.name} OK")
-    print(f"All config files look OK")
+    msg = "All config files look good"
+    cmd_output(msg,sentinel=" ")
     return Containers
 
 
@@ -206,10 +229,9 @@ def format_command(
             + "This should not happen. Did you add an option"
             + "and forget to update format_command?"
         )
-
-    print("*********************************************************************")
-    print(f"***************** {msg}: {model_name} *********************")
-    print("*********************************************************************")
+    cmd_output('*',sep='')
+    cmd_output(f"{msg}: {model_name}")
+    cmd_output('*',sep='')
     return apptainer_command
 
 
@@ -285,11 +307,23 @@ def parse_cmd_arguments():
 
 
 def list_containers(Containers: dict, group: str = ""):
-    print("*************************************")
-    print("Currently available containers:")
-    print("*************************************")
-    print(f"Name:         Group:    Description:")
-    print("-------------------------------------")
+    '''
+    Print filtered list of containers to stdout, 
+    formatted for readability
+    
+    :params
+        Containers: dictionary of available containers, keys are 
+                    container names and values are the group it 
+                    belongs to.
+        group:      group to filter output by
+
+    '''
+    msg_length=40
+    cmd_output("*",sep="",length=msg_length)
+    cmd_output("Currently available containers:",length=msg_length)
+    cmd_output("*",sep="",length=msg_length)
+    print(f"Name:          Group:    Description:")
+    cmd_output("-",sep="",sentinel='-',length=msg_length)    
     for key, value in Containers.items():
         if value.group == group or group == "":
             output = f"{key:<15}{value.group:<10}{value.description}"
@@ -305,15 +339,16 @@ def main() -> int:
         container_config = Path(args.config_file)
     else:
         container_config = Path("Container_Configs/")
-    print("*********************************************************************")
-    print(f"***************** Loading Model Config Files ************************")
-    print("*********************************************************************")
+    cmd_output("*",sep="")
+    cmd_output("Loading Model Config Files")
+    cmd_output("*",sep="")
+    
     Containers = load_container_config_file(container_config)
 
     if args.operation.lower() == "list":
         # just list all detected containers then exit
         list_containers(Containers, args.group)
-        return
+        return 0
 
     model_name = args.model_name
 
@@ -331,6 +366,7 @@ def main() -> int:
         print("current config will run the following command:")
         print(apptainer_command)
     else:
+        logging.info(f"Running command: {apptainer_command}")
         proc = subprocess.run(apptainer_command, shell=True)
         try:
             proc.check_returncode()
