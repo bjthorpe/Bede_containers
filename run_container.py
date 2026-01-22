@@ -207,6 +207,23 @@ def format_command(
 
     image = Container.image_file
     definition = Container.container_definition
+    
+    # set GPU flags
+    # use Nvidia GPU
+    if Container.Device.lower() == 'cuda':
+        gpu_flag = " --nv "
+    # use AMD GPU
+    elif Container.Device.lower() == 'rocm':
+        gpu_flag = " --rocm "        
+    # use CPU
+    elif Container.Device.lower() == 'cpu':
+        gpu_flag = ""
+    # Default to cpu and print out warning message if device is unknown
+    else:
+        logging.warning(f"Device {Container.Device} in config file for {model_name} not recognised.")
+        logging.warning(f"Defaulting to cpu for calculations.")
+        gpu_flag = ""
+        
     # turn off automatic mounts if requested
     if Container.dont_mount != []:
         # remove auto-mount for users home directory if requested
