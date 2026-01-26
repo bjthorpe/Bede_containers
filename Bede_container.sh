@@ -1,2 +1,2 @@
 # Script to make test runs easier
-uv run run_container.py "${@}"
+uv run src/run_container.py "${@}"
