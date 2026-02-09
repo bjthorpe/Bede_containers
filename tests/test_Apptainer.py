@@ -1,8 +1,8 @@
 # tests for Apptainer installation
 import pytest
 import subprocess
-from util_functions import check_test_output
-from run_container import main
+from src.util_functions import check_test_output
+from src.run_container import main
 
 def test_Apptainer():
     """

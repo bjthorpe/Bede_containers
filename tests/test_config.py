@@ -2,11 +2,11 @@
 import pytest
 import sys
 from dacite import exceptions
-from check_yaml import DuplicateKeyError
-from run_container import format_command
+from src.check_yaml import DuplicateKeyError
+from src.run_container import format_command
 
 sys.path.append("../")
-from run_container import load_container_config_file, check_container_config
+from src.run_container import load_container_config_file, check_container_config
 
 
 def test_config_not_exist():

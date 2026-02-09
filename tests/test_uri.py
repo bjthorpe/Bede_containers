@@ -1,6 +1,6 @@
 # tests for loading config file ect..
 import pytest
-from check_URI import check_container_def
+from src.check_URI import check_container_def
 
 def test_validation_docker():
     uri = 'docker://alpine:latest'

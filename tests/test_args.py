@@ -2,9 +2,9 @@
 import pytest
 import sys
 import os
-from util_functions import check_test_output
-from run_container import main, format_command,CMD_FormatError 
-from run_container import check_container_config
+from src.util_functions import check_test_output
+from src.run_container import main, format_command,CMD_FormatError 
+from src.run_container import check_container_config
 
 def test_list(capfd, monkeypatch):
     ''' 

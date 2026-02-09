@@ -1,2 +1,2 @@
 # Script to make test runs easier
-python3 src/run_container.py "${@}"
+python3 ML_Toolkit.py "${@}"

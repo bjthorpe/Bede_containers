@@ -4,10 +4,10 @@ import subprocess, sys, yaml
 from dataclasses import dataclass, field
 from typing import Optional, List
 from dacite import from_dict
-from check_yaml import DuplicateKeyDetector, DuplicateKeyError
-from check_yaml import is_valid_name
-from check_URI import check_container_def
-from util_functions import create_build_options
+from src.check_yaml import DuplicateKeyDetector, DuplicateKeyError
+from src.check_yaml import is_valid_name
+from src.check_URI import check_container_def
+from src.util_functions import create_build_options
 import logging
 
 logging.basicConfig(
@@ -448,5 +448,5 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__":
-    return_code = main()
+# if __name__ == "__main__":
+#     return_code = main()
