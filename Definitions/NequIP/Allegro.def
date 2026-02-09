@@ -1,0 +1,28 @@
+Bootstrap: docker
+#From: python:3.14.2-trixie
+From: pytorch/pytorch:2.9.0-cuda13.0-cudnn9-devel
+
+%post -c /bin/bash
+
+    apt update
+    apt install -y build-essential
+    python3 -m venv /envs/ML_env
+    source /envs/ML_env/bin/activate
+    pip install --upgrade pip
+    pip install torch --index-url https://download.pytorch.org/whl/cu126
+    pip install nequip-allegro
+    echo {{ checkpoint_file }}
+    echo {{ repo }}
+
+#    nequip-compile \
+#  nequip.net:mir-group/{{ repo }}:0.1 \
+#  mir-group__{{ checkpoint_file }} \
+#  --mode aotinductor \
+#  --device cuda \
+#  --target ase
+
+%startscript
+    python3 --version
+
+%runscript
+    python3 --version
