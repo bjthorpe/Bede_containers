@@ -66,4 +66,5 @@ Definitions/*.def
 
 #logfiles
 logs/log.log
-Models/FairChem/*
+Models/*
+.vscode
