@@ -4,10 +4,29 @@ import sys
 from dacite import exceptions
 from src.check_yaml import DuplicateKeyError
 from src.run_container import format_command
+from pathlib import Path
+import subprocess
+import os
 
 sys.path.append("../")
 from src.run_container import load_container_config_file, check_container_config
 
+@pytest.fixture
+def build_test_container():
+    test_containers = ['Example_Model1.sif','Example_Model2.sif']
+    # cleanup any potential old test containers
+    for cont in test_containers:
+        if Path(f'Images/{cont}').exists():
+            os.rmdir(f'Images/{cont}')
+        apptainer_command = f"apptainer \
+        build Images/{cont} docker://alpine:latest"
+        proc = subprocess.run(apptainer_command, shell=True)
+#start tests
+    yield
+#cleanup afterwards
+    for cont in test_containers:
+        os.remove(f'Images/{cont}')
+    return
 
 def test_config_not_exist():
     with pytest.raises(FileNotFoundError):
@@ -59,7 +78,7 @@ def test_multi_definition_3():
     with pytest.raises(DuplicateKeyError):
         containers = check_container_config(["tests/test_configs/valid.yaml","tests/test_configs/valid.yaml"])
 
-def test_format_command():
+def test_format_command(build_test_container):
     '''
     test to check function that creates Apptainer commands
     '''

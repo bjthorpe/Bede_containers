@@ -14,7 +14,7 @@ def test_Apptainer():
     print("*********************************************************************")
 
     apptainer_command = (
-        f"apptainer run docker://quay.io/vwbusguy/cowsay 'All looks good to me'"
+        f"apptainer run docker://ubuntu:latest"
     )
     proc = subprocess.run(apptainer_command, shell=True)
     assert proc.returncode == 0

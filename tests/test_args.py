@@ -5,6 +5,39 @@ import os
 from src.util_functions import check_test_output
 from src.run_container import main, format_command,CMD_FormatError 
 from src.run_container import check_container_config
+from pathlib import Path
+import subprocess
+
+@pytest.fixture
+def build_test_container():
+    # cleanup any potential old test containers
+    if Path(f'Images/TestContainer.sif').exists():
+        os.remove(f'Images/TestContainer.sif')
+
+    apptainer_command = f"apptainer build Images/TestContainer.sif docker://alpine:latest"
+    proc = subprocess.run(apptainer_command, shell=True)
+#start tests
+    yield
+#cleanup afterwards
+    os.remove(f'Images/TestContainer.sif')
+    return
+
+@pytest.fixture
+def build_test_container_2():
+    test_containers = ['Example_Model1.sif','Example_Model2.sif']
+    # cleanup any potential old test containers
+    for cont in test_containers:
+        if Path(f'Images/{cont}').exists():
+            os.rmdir(f'Images/{cont}')
+        apptainer_command = f"apptainer \
+        build Images/{cont} docker://alpine:latest"
+        proc = subprocess.run(apptainer_command, shell=True)
+#start tests
+    yield
+#cleanup afterwards
+    for cont in test_containers:
+        os.remove(f'Images/{cont}')
+    return
 
 def test_list(capfd, monkeypatch):
     ''' 
@@ -28,7 +61,7 @@ def test_list_all(capfd, monkeypatch):
     out = capfd.readouterr().out
     check_test_output("tests/good_outputs/test_list.txt",out)
 
-def test_debug_flag(capfd, monkeypatch):
+def test_debug_flag(capfd, monkeypatch,build_test_container):
     '''
     check debug flag works
     '''
@@ -63,7 +96,7 @@ def test_unknown_operation():
     with pytest.raises(CMD_FormatError):
         format_command("unknown","test",containers['Example_Model1'])
 
-def test_config_file_flag(monkeypatch):
+def test_config_file_flag(monkeypatch,build_test_container_2):
     '''
     check config_file flag works with single file
     '''
@@ -74,7 +107,7 @@ def test_config_file_flag(monkeypatch):
     return_code = main()
     assert return_code == 0
 
-def test_config_file_flag_dir(monkeypatch):
+def test_config_file_flag_dir(monkeypatch,build_test_container_2):
     '''
     check config_file flag works with a directory
     '''
