@@ -258,7 +258,7 @@ def format_command(
         gpu_flag = " --rocm "        
     # use CPU
     elif Container.device.lower() == 'cpu':
-        gpu_flag = ""
+        gpu_flag = " "
     # Default to cpu and print out warning message if device is unknown
     else:
         logging.warning(f"Device {Container.device} in config file for {model_name} not recognised.")
@@ -311,7 +311,7 @@ def format_command(
         cmd = " ".join(cmd_list)
         msg = "Running"
         image_exists(image)
-        apptainer_command = f"apptainer exec{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
+        apptainer_command = f"apptainer exec {enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
 
     elif operation == "build" or operation == "load":
         msg = "Building"
