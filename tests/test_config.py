@@ -66,6 +66,13 @@ def test_shared_dir_is_file():
 def test_multi_definition_1():
     load_container_config_file("tests/test_configs/test5.yaml")
 
+def test_invalid_option():
+    # check that we raise error if we provide an invalid option
+    with pytest.raises(ValueError):
+        load_container_config_file("tests/test_configs/test10a.yaml")
+
+def test_case_insenstive():
+    load_container_config_file("tests/test_configs/test10b.yaml")
 
 def test_multi_definition_2():
     # chekc that we raise error if model names are repeated in the same config file

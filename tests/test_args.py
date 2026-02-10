@@ -48,7 +48,9 @@ def test_list(capfd, monkeypatch):
     monkeypatch.setattr("sys.argv", [prog, "list","--group","Test"])
     main()
     out = capfd.readouterr().out
-    check_test_output("tests/good_outputs/test_list_all.txt",out)
+    # only check up to the end of the list header as the actual 
+    # contents does not matter and can vary    
+    check_test_output("tests/good_outputs/test_list.txt",out,9)
 
 def test_list_all(capfd, monkeypatch):
     '''
@@ -59,7 +61,9 @@ def test_list_all(capfd, monkeypatch):
     monkeypatch.setattr("sys.argv", [prog,"list"])
     return_code = main()
     out = capfd.readouterr().out
-    check_test_output("tests/good_outputs/test_list.txt",out)
+    # only check up to the end of the list header as the actual 
+    # contents does not matter and can vary
+    check_test_output("tests/good_outputs/test_list.txt",out,9)
 
 def test_debug_flag(capfd, monkeypatch,build_test_container):
     '''

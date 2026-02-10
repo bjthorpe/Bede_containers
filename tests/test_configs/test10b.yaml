@@ -1,0 +1,6 @@
+# This is test to check that options are not case sensitive
+Example_Model1:
+# This spec is valid
+  DesCription: "another example to test config files"
+  container_definition: "alpine:latest"
+

@@ -48,9 +48,8 @@ class ContainerConfig:
     dont_mount: List[str] = field(default_factory=list)
     group: str = field(default="")
     encrypted: bool = field(default=False)
-    Device: str = field(default='cuda')
+    device: str = field(default='cuda')
     build_options: dict = field(default_factory=dict)
-
 
 class CMD_FormatError(Exception):
     """
@@ -68,14 +67,56 @@ class CMD_FormatError(Exception):
         self.message = message
         super().__init__(self.message)
 
+def check_config_options(container:dict,name:str,filename:str):
+    '''
+    Take in dict of parameters defined in the yaml file and 
+    check to see if they are valid class members for ContainerConfig.
+
+    '''
+    #create a blank default config to extract a list of valid members 
+    blank_config = ContainerConfig(description='test')
+    valid_options = list(blank_config.__dict__.keys())
+    
+    container_options = list(container.keys())
+    logging.info(f"--- Container: {name} ---")
+    for option in container_options:
+        if option in valid_options:
+            logging.info(f"{option}: {container[option]}")
+            continue
+        # check for case sensitivity and fix if necessary
+        elif option.lower() in valid_options:
+            logging.warning(f"Option: {option} is not valid. Assuming you meant: {option.lower()}")
+            new_key = option.lower()
+            container[new_key] = container[option]
+            container.pop(option)
+            logging.info(f"{new_key}: {container[new_key]}")
+            continue
+        else:
+            raise ValueError(
+                    f"Error in config of Model name {name} in {filename}:\n\
+                        Option:{option} is not recognised this must be one of:\n\
+                        {valid_options}"
+                )
+    return container
+    
+def list_valid_config_options() -> List:
+    '''
+    Function to create a blank default config,
+    extract a list of members then return a list.
+
+    '''
+    #create a blank default config to extract a list of valid members 
+    blank_config = ContainerConfig(description='test')
+    valid_options = list(blank_config.__dict__.keys())
+    return valid_options
 
 def check_container_config(config_files: list):
     """
     Function to load configs from list of yaml files, check for errors
     and create dict of all container configs with names as keys.
     """
-
     Containers = {}
+
     cmd_output("Checking all config files.",log=True,sentinel=" ")
     for conf_file in config_files:
         with open(conf_file, "r") as file:
@@ -89,7 +130,7 @@ def check_container_config(config_files: list):
                     f"Model name {key} in {file.name} is not valid \
                                  model names must contain only, letter number and/or underscores"
                 )
-
+            all_containers[key] = check_config_options(all_containers[key],key,file.name)
             result = from_dict(data_class=ContainerConfig, data=all_containers[key])
             # check for duplicate model names
             if key not in Containers:
@@ -210,17 +251,17 @@ def format_command(
     
     # set GPU flags
     # use Nvidia GPU
-    if Container.Device.lower() == 'cuda':
+    if Container.device.lower() == 'cuda':
         gpu_flag = " --nv "
     # use AMD GPU
-    elif Container.Device.lower() == 'rocm':
+    elif Container.device.lower() == 'rocm':
         gpu_flag = " --rocm "        
     # use CPU
-    elif Container.Device.lower() == 'cpu':
+    elif Container.device.lower() == 'cpu':
         gpu_flag = ""
     # Default to cpu and print out warning message if device is unknown
     else:
-        logging.warning(f"Device {Container.Device} in config file for {model_name} not recognised.")
+        logging.warning(f"Device {Container.device} in config file for {model_name} not recognised.")
         logging.warning(f"Defaulting to cpu for calculations.")
         gpu_flag = ""
         
