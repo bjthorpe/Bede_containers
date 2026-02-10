@@ -8,6 +8,7 @@ from src.check_yaml import DuplicateKeyDetector, DuplicateKeyError
 from src.check_yaml import is_valid_name
 from src.check_URI import check_container_def
 from src.util_functions import create_build_options
+from src.version import __version__
 import logging
 
 logging.basicConfig(
@@ -407,6 +408,11 @@ def parse_cmd_arguments():
         action="store_true",
         help="Print generated Apptainer command instead of running container, useful for sanity checking",
     )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=__version__,
+    )   
 
     args = parser.parse_args()
 
