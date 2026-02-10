@@ -311,7 +311,7 @@ def format_command(
         cmd = " ".join(cmd_list)
         msg = "Running"
         image_exists(image)
-        apptainer_command = f"apptainer exec {enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
+        apptainer_command = f"apptainer exec{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
 
     elif operation == "build" or operation == "load":
         msg = "Building"
