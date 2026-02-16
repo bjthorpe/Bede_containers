@@ -1,20 +1,31 @@
 Bootstrap: docker
-#From: python:3.12
-From: pytorch/pytorch:2.4.1-cuda12.1-cudnn9-devel
-#%files
-#   scripts/huggingface.exp /scripts/huggingface.exp
+From: python:3.11
 
 %post -c /bin/bash
     apt update
-    DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -y curl git g++
-    pip3 install fairchem-core==2.13 torch_scatter torch_sparse
+    DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC \ 
+    apt install -y curl git g++
+# directory to store HFmodels
+    mkdir /Models
+    export HF_HOME=/Models
+    export HF_HUB_CACHE=/Models/hub
 
-# check to see if we have the model if not download 
-# it with the provided API key.
-    bash <(curl -sSL https://g.bodaay.io/hfd) download facebook/UMA -t {{ HF_AUTH }}
-
-%startscript
+# Install final dependencies
+    python3 -m venv /envs/UMA && \
+    source /envs/UMA/bin/activate && \
+    pip install fairchem-core==2.13.0
+# login to huggingface to shut it up
+    hf auth login --token {{ HF_AUTH }}
+#  download models with the provided API key.
+    echo "Downloading model file {{ checkpoint_file }}"    
+    hf download --token {{ HF_AUTH }} facebook/UMA {{ checkpoint_file }} && \
+    hf download --token {{ HF_AUTH }} facebook/UMA references/form_elem_refs.yaml && \
+    hf download --token {{ HF_AUTH }} facebook/UMA references/iso_atom_elem_refs.yaml
+%startscript 
     python3 --version
 
-%runscript
-    python3 --version
+%environment
+    export HF_HOME=/Models
+    export HF_HUB_CACHE=/Models/hub
+    export PATH="/envs/UMA/bin:$PATH"
+    export FAIRCHEM_CACHE_DIR=/Models/hub

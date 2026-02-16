@@ -7,7 +7,7 @@ from dacite import from_dict
 from src.check_yaml import DuplicateKeyDetector, DuplicateKeyError
 from src.check_yaml import is_valid_name
 from src.check_URI import check_container_def
-from src.util_functions import create_build_options
+from src.util_functions import create_build_options, cmd_output, which
 from src.version import __version__
 import logging
 
@@ -17,27 +17,6 @@ logging.basicConfig(
     filemode="w",
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
-def cmd_output(message:str,length=80,sentinel='*',log=False,sep=" "):
-    '''
-    useful function for formatting logging/cmd output
-    Params:
-
-    message - string to output
-    length - number of characters to output
-    sentinel - character used to fill majority of line
-    sep - character used to create space either side of the message
-    length - max length of the outputted message
-    log - flag to set if output goes to just the log or both log and stdout
-    '''
-    message = sep + message + sep
-    result = f"{message:{sentinel}^{length}}"
-    
-    if log:
-        logging.info(result)
-    else:
-        logging.info(result)
-        print(result)
-
 
 @dataclass
 class ContainerConfig:
@@ -472,7 +451,12 @@ def main() -> int:
             f"no model named {model_name} was found in a config file.\n \
                             Model must be one of \n{list(Containers.keys())}"
         )
-
+    # check to see if Apptainer is available on the system path
+    if which('apptainer') is None:
+        msg = f"Apptainer does not appear to be installed or is not "
+        msg2 = "available on the system path. Please check Your installation."
+        raise ValueError(msg+msg2)
+    
     apptainer_command = format_command(
         args.operation, model_name, Containers[model_name], args.cmd
     )

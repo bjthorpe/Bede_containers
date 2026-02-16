@@ -1,19 +1,36 @@
+#####################################################
 Bootstrap: docker
-From: pytorch/pytorch:2.4.1-cuda12.1-cudnn9-devel
-#%files
-#   scripts/huggingface.exp /scripts/huggingface.exp
-
+From: python:3.11
+# Actual final container
 %post -c /bin/bash
+# directory to store HFmodels
+    mkdir /Models
+    export HF_HOME=/Models
+    export HF_HUB_CACHE=/Models/hub
+
+# update and install dependencies
+    python3 -m venv /envs/OMAT24 && \
+    source /envs/OMAT24/bin/activate \
     apt update
     DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt install -y curl git g++
-    pip3 install fairchem-core==1.10.0 torch_scatter torch_sparse
+    pip3 install fairchem-core==1.10.0 scipy==1.16 \
+    torch-sparse -f https://data.pyg.org/whl/torch-2.4.1+cu121.html \
+    torch-scatter -f https://data.pyg.org/whl/torch-2.4.1+cu121.html \
+    twisted
+# login to huggingface to shut it up
+    hf auth login --token {{ HF_AUTH }}
+#  download models with the provided API key.
+    echo "Downloading model file {{ checkpoint_file }}"    
+    hf download --token {{ HF_AUTH }} facebook/OMAT24 {{ checkpoint_file }}
+# find and move symlink to model to make it easier to work with
+    find /Models -iname {{ checkpoint_file }} -exec bash -c 'cp $0 /Models' {} \;
+##########################################################################
 
-# download the pre-trained model from hugging face with the provided API key.
-    echo "downloading pre-trained model {{ checkpoint_file }} from hugging face."
-    bash <(curl -sSL https://g.bodaay.io/hfd) download facebook/OMAT24 -t {{ HF_AUTH }}
-
-%startscript
+%startscript 
     python3 --version
 
-%runscript
-    python3 --version
+%environment
+    export HF_HOME=/Models
+    export HF_HUB_CACHE=/Models/hub
+    export PATH="/envs/OMAT24/bin:$PATH"
+    export FAIRCHEM_CACHE_DIR=/Models/hub
