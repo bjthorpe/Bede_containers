@@ -68,3 +68,4 @@ Definitions/*.def
 logs/log.log
 Models/*
 .vscode
+Container_Configs/API_Keys/HF_AUTH.key
