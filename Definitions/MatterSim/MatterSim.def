@@ -19,13 +19,32 @@ From: python:3.11
 
 %startscript
 
+    # start with sensible defaults
     LISTEN_PORT=5000
-
+    TIMEOUT_OVERWRITE=60
     NUM_SERVERS=1
 
-    MAX_CONNS=$(($NUM_SERVERS*3))
+    # go though arguments and change as appropriate
+    while getopts "P:T:N:" opt; do
+        case ${opt} in
+        P)
+        LISTEN_PORT=${OPTARG}
+        ;;
+        T)
+        TIMEOUT_OVERWRITE=${OPTARG}
+        ;;
+        N)
+        NUM_SERVERS=${OPTARG}
+        ;;
 
-    TIMEOUT_OVERWRITE=60
+        ?)
+        echo "Invalid option: -${OPTARG}."
+        exit 1
+        ;;
+        esac
+    done
+    
+    MAX_CONNS=$(($NUM_SERVERS*3))
 
     # Start the python environment
     . /envs/ML_env/bin/activate
@@ -52,7 +71,7 @@ From: python:3.11
     done
 
     # Run server in Daemon mode (using modified config file in tmp)
-    haproxy -f /tmp/HAProxy_${LISTEN_PORT}.cfg -D >> `pwd`logs/HAProxy.log 2>&1
+    haproxy -f /tmp/HAProxy_${LISTEN_PORT}.cfg -D >> `pwd`/logs/HAProxy.log 2>&1
 
 
 %environment

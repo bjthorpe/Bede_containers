@@ -125,8 +125,9 @@ def check_container_config(config_files: list):
             # if no image file is given set default image file name as "model_name.sif"
             if result.image_file == "":
                 result.image_file = f"Images/{key}.sif"
-            elif result.image_file.endswith(".sif"):
-                pass
+            elif result.image_file.endswith(".sif"):#
+                # Make parent directories if they don't exist
+                Path(result.image_file).parent.mkdir(parents=True, exist_ok=True)
             else:
                 raise ValueError(
                     f"Error in config of Model name {key} in {file.name}:\n\
@@ -296,14 +297,16 @@ def format_command(
     elif operation == "build" or operation == "load":
         msg = "Building"
         build_options_str = create_build_options(Container.build_options)
+
         apptainer_command = (
             f"apptainer build{build_options_str}{enc_flag}{gpu_flag}{image} {definition}"
         )
 
     elif operation == "start":
         msg = "Starting"
+        cmd = " ".join(cmd_list)
         image_exists(image)
-        apptainer_command = f"apptainer instance start{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name}"
+        apptainer_command = f"apptainer instance start{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name} {cmd}"
 
     elif operation == "stop":
         msg = "Stopping"
@@ -371,6 +374,8 @@ def parse_cmd_arguments():
     )
 
     start_parser.add_argument("model_name", type=str, help="Name of Model to use")
+    start_parser.add_argument("cmd", type=str, nargs="*", help="Optional arguments to pass to start script.")    
+    
     # sub-parser for the stop operation
     stop_parser = subparsers.add_parser(
         "stop", help="Stop container that is running in the background"
@@ -395,7 +400,7 @@ def parse_cmd_arguments():
 
     args = parser.parse_args()
 
-    if args.operation != "run":
+    if args.operation != "run" and args.operation != "start":
         args.cmd = ""
     return args
 
