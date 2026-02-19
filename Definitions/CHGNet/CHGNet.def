@@ -24,21 +24,64 @@ From: python:3.11
     TIMEOUT_OVERWRITE=60
     NUM_SERVERS=1
 
-    # go though arguments and change as appropriate
-    while getopts "P:T:N:" opt; do
+    # Preprocess arguments to convert long options to short
+    args=()
+    for arg in "$@"; do
+    case "$arg" in
+        --port) args+=("-p "${arg#--port=}") ;; # here ${arg#--port=} Extracts value after =
+        --timeout) args+=("-t "${arg#--timeout=}") ;; 
+        --Nservers=*) args+=("-n" "${arg#--Nservers=}") ;; 
+        --) args+=("$arg"); break ;;
+        *) args+=("$arg") ;;
+    esac
+    done
+    set -- "${args[@]}"
+    
+    # Parse options with getopts
+    verbose=0
+    file=""
+
+    done
+
+    # go through arguments and set variables as appropriate
+    while getopts "hp:t:N:" opt; do
         case ${opt} in
-        P)
-        LISTEN_PORT=${OPTARG}
+        h)
+            echo "Usage: $0 [OPTIONS]"
+            echo "  -h, --help        Show this help message"
+            echo "  -p, --port PORT_NUM    Set TCP port number, must be greater than 1024 (default: 5000)"
+            echo "  -t, --timeout TIME   Server timeout in seconds, must be greater than 0 (default: 60)"
+            echo "  -N, --Nservers NUM_SERVERS   Number of python servers to spawn, must be greater than 0 (default: 1)"
+            exit 0
+            ;;
+        p)
+        if [ "${OPTARG}" -gt 1024 ] 2>/dev/null; then
+            LISTEN_PORT=${OPTARG}
+        else
+            echo -e "\n\nERROR: Input variable <port> (given ${OPTARG}) not valid\n\n" >&2
+            exit 11
+        fi
         ;;
-        T)
-        TIMEOUT_OVERWRITE=${OPTARG}
+        t)
+            if [ "${OPTARG}" -gt 0 ] 2>/dev/null; then
+                TIMEOUT_OVERWRITE=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <timeout> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
+        
         ;;
         N)
-        NUM_SERVERS=${OPTARG}
+            if [ "${OPTARG}" -gt 0 ] 2>/dev/null; then
+                NUM_SERVERS=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <NServers> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
         ;;
 
         ?)
-        echo "Invalid option: -${OPTARG}."
+        echo "Invalid option: -${OPTARG}." >&2
         exit 1
         ;;
         esac
