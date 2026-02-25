@@ -98,7 +98,7 @@ def create_build_options(options: dict) -> str:
     return build_args_str
 
 
-def which(program:str) -> str|None:
+def which(program:str):
     '''
     Simple function pinched from stackoverflow https://stackoverflow.com/a/377028
     It performs the same function as the the bash command which. That is you pass 
