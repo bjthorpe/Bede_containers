@@ -4,8 +4,9 @@ import logging
 import utility.io as io
 from twisted.internet import reactor
 from server.twisted_server import ML_Factory
+from Matbench_Models import Get_ASE_Calculator
 
-def initialise_model(self,ML_model_option,ML_port):
+def initialise_model(self,ML_model_option,ML_port,ML_task=None):
     '''
     Initialise the ML model, only need to do this once
     '''
@@ -116,10 +117,19 @@ def initialise_model(self,ML_model_option,ML_port):
             from fairchem.core import pretrained_mlip, FAIRChemCalculator  
         except:
             initialise_error('fairchem (V2.13) module cannot be found, please install.',ML_port)
-
+        try:
+            from ase import Atoms
+        except:
+            initialise_error('ASE module cannot be found, please install.',ML_port)
+        
+        
+        if not ML_task:
+            initialise_error(f'Task must be specified for METa UMA model.\n\
+                             This must be one of: oc20, omat, omol ,odac, or, omc".',ML_port)
+        
         self.Atoms = Atoms
         self.toolkit = 'ASE'
-        self.model = Get_ASE_Calculator(ML_model_option_lower,device='cpu',task='omol')
+        self.model = Get_ASE_Calculator(ML_model_option_lower,device='cpu',task=ML_task)
 
     elif ML_model_option_lower == 'chgnet':
 
@@ -156,6 +166,7 @@ if __name__ == '__main__':
     io.write_log('info','Server started',args.port)
     reactor.listenTCP(args.port,ML_Factory(
         port=args.port,
+        task=args.task,
         timeout_cutoff=args.timeout_cutoff,
         logging_level=args.logging_level,
         ML_model_option=args.ML_model_option,

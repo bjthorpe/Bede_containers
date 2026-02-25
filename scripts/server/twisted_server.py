@@ -17,19 +17,20 @@ from Matbench_Models import Get_ASE_Calculator
 
 class ML_Factory(Factory):
 
-    def __init__(self,port,timeout_cutoff,logging_level,ML_model_option,initialise_model_function):
+    def __init__(self,port,task,timeout_cutoff,logging_level,ML_model_option,initialise_model_function):
 
         self.timeout_cutoff = timeout_cutoff
         self.port = port
         self.logging_level = logging_level
         self.ML_model_option = ML_model_option
         self.tmp_ctr = 0
+        self.task=task
 
         write_log('info',f'Starting: Loading ML model {ML_model_option} into factory',self.port)
 
         # Bind the input initialisation function to the factory class
         self.initialise_model = initialise_model_function.__get__(self,ML_Factory)
-        self.initialise_model(self.ML_model_option,self.port)
+        self.initialise_model(self.ML_model_option,self.port,self.task)
 
         write_log('info',f'Complete: Loading ML model {ML_model_option} into factory',self.port)
 

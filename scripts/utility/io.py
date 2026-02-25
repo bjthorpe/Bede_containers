@@ -15,16 +15,19 @@ def parse_arguments():
     parser = argparse.ArgumentParser(
         description='Create an ML prediction server for use with CASTEP sockets PP methods')
 
-    parser.add_argument('-P','--port',type=int,default=50000,
+    parser.add_argument('-P','--port',type=int,default=5000,
                         help='The port to open on the prediction server.')
     parser.add_argument('-L','--logging_level',type=str,default='info',
                         help='The logging level to be used by python logging. Should be one of '
                         ' [ debug, info, warning, error, critical ]. Default info')
-    parser.add_argument('-T','--timeout_cutoff',type=int,default=30,
+    parser.add_argument('-T','--timeout_cutoff',type=int,default=60,
                         help='The timeout for the server, exit if prediction takes this long (in seconds).')
     parser.add_argument('-M','--ML_model_option',type=str,default='None',
                         help='The ML method to use, e.g. CHGNet, MatterSim etc.'
                         ' Dependancies must be installed. Check main file for implemented methods')
+    parser.add_argument('-t','--task',type=str,default='None',
+                        help='The task to use for Meta UMA models, e.g. omol, omat, omc etc.'
+                        ' This is required by Meta UMA Models but is ignored by all other models')
 
     args = parser.parse_args()
 

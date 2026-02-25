@@ -341,11 +341,11 @@ def parse_cmd_arguments():
         dest="operation", required=True, help="Operation to perform."
     )
     # sub-parser for the run operation
-    run_parser = subparsers.add_parser("run", help="Run command(s), with the Container")
+    run_parser = subparsers.add_parser("run", help=f"Run command(s), with the Container")
 
     run_parser.add_argument("model_name", type=str, help="Name of Model to use")
 
-    run_parser.add_argument("cmd", type=str, nargs="+", help="Command(s) to run")
+    run_parser.add_argument("cmd", type=str, nargs=1, help="Command(s) to run")
 
     # sub-parser for the build operation
     build_parser = subparsers.add_parser(
@@ -370,11 +370,11 @@ def parse_cmd_arguments():
 
     # sub-parser for the start operation
     start_parser = subparsers.add_parser(
-        "start", help="Start Container as background process"
+        "start", help="Start Container as background process.\n\
+    Note: any additional arguments will be passed on to the container start script defined in the .def file."
     )
 
-    start_parser.add_argument("model_name", type=str, help="Name of Model to use")
-    start_parser.add_argument("cmd", type=str, nargs="*", help="Optional arguments to pass to start script.")    
+    start_parser.add_argument("model_name", type=str, help="Name of Model to use")    
     
     # sub-parser for the stop operation
     stop_parser = subparsers.add_parser(
@@ -398,10 +398,17 @@ def parse_cmd_arguments():
         version=__version__,
     )   
 
-    args = parser.parse_args()
+    args, unknown_args = parser.parse_known_args()
 
-    if args.operation != "run" and args.operation != "start":
-        args.cmd = ""
+    if unknown_args !=[]:
+        if args.operation == "run":
+            args.cmd = args.cmd + unknown_args
+        elif args.operation == "start":
+            args.cmd = unknown_args
+        else:
+            print(" WARNING: The following arguments were not recognized:")
+            print(unknown_args)
+            sys.exit(-1)
     return args
 
 
@@ -462,6 +469,8 @@ def main() -> int:
         msg2 = "available on the system path. Please check Your installation."
         raise ValueError(msg+msg2)
     
+    if not hasattr(args,'cmd'):
+        args.cmd=[]
     apptainer_command = format_command(
         args.operation, model_name, Containers[model_name], args.cmd
     )
