@@ -116,7 +116,6 @@ From: python:3.11
     # Run server in Daemon mode (using modified config file in tmp)
     haproxy -f /tmp/HAProxy_${LISTEN_PORT}.cfg -D >> `pwd`/logs/HAProxy.log 2>&1
 
-
 %environment
     # pass
     export PATH="/envs/ML_env/bin:$PATH"
