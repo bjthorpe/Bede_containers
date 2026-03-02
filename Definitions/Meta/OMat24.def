@@ -21,10 +21,9 @@ From: python:3.11
     source /envs/OMAT24/bin/activate
     apt -y update && \
     apt install -y curl git g++ haproxy
-    pip3 install fairchem-core==1.10.0 scipy==1.16 \
-    torch-sparse -f https://data.pyg.org/whl/torch-2.4.1+cu121.html \
-    torch-scatter -f https://data.pyg.org/whl/torch-2.4.1+cu121.html \
-    twisted
+    pip3 install fairchem-core==1.10.0 scipy==1.16 torch twisted &&
+    pip3 install --no-build-isolation torch-sparse torch-scatter
+
 # login to huggingface to shut it up
     hf auth login --token {{ HF_AUTH }}
 #  download models with the provided API key.
