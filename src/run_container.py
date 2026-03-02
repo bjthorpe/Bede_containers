@@ -140,7 +140,9 @@ def check_container_config(config_files: list):
                 result.container_definition = check_container_def(
                     result.container_definition
                 )
-
+            # Make parent directory(s) of definition file if it does not exist
+            Path(result.container_definition).mkdir(parents=True, exist_ok=True)
+            
             # do some checks for shared directory if defined
             if result.shared_directories != []:
                 for directory in result.shared_directories:

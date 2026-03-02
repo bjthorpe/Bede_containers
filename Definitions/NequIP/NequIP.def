@@ -6,7 +6,7 @@ From: python:3.11
     scripts/Matbench_Models.py prediction/
     scripts/utility prediction/utility
     scripts/server prediction/server
-    scripts/Nequip_compile.sh /Models/compile
+    scripts/Nequip_compile.sh /Models/compile/
     Models/NequIP  /Models/Nequip
     
 %post -c /bin/bash
@@ -24,7 +24,7 @@ From: python:3.11
     #compile the downloaded model
     /Models/compile/Nequip_compile.sh \
     /Models/Nequip/{{ model_name }}-0.1.nequip.zip \
-    mir-group__{{ model_name }}__0.1.nequip.pt2
+    mir-group__{{ model_name }}__0.1.nequip.pt2 cuda
 
 %startscript
     python3 --version
