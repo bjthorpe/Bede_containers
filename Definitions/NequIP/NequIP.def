@@ -7,24 +7,29 @@ From: python:3.11
     scripts/utility prediction/utility
     scripts/server prediction/server
     scripts/Nequip_compile.sh /Models/compile
-    Models/Nequip  /Models/Nequip
+    Models/NequIP  /Models/Nequip
     
 %post -c /bin/bash
     export NEQUIP_CACHE_DIR=/Models/Nequip
     export CUDA_HOME=/usr/local/cuda
     apt update
-    apt install -y build-essential
+    apt install -y build-essential curl
     python3 -m venv /envs/ML_env
     source /envs/ML_env/bin/activate
     pip install --upgrade pip
     pip install nequip
     mkdir -p /Models/Nequip
-    /Models/compile/Nequip_compile.sh 
+    # download the pre-trained model
+    curl {{ url }} -o /Models/Nequip/{{ model_name }}-0.1.nequip.zip
+    #compile the downloaded model
+    /Models/compile/Nequip_compile.sh \
+    /Models/Nequip/{{ model_name }}-0.1.nequip.zip \
+    mir-group__{{ model_name }}__0.1.nequip.pt2
 
 %startscript
     python3 --version
 
 
 %environment
-    export CUDA_HOME=/usr/local/cuda
+    #export CUDA_HOME=/usr/local/cuda
     export NEQUIP_CACHE_DIR=/Models/Nequip

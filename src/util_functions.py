@@ -76,12 +76,13 @@ def create_build_options(options: dict) -> str:
             with open('Container_Configs/API_Keys/HF_AUTH.key', 'r') as file:
                 lines = file.readlines()
                 for line in lines:
+                    line = line.replace("\n", "")
                     # skip comment lines
                     if line.startswith('#'):
                         continue
-                    if not re.match(pattern, line):
+                    elif not re.match(pattern, line):
                         raise ValueError(f'Invalid hugging face API key: {pattern} found in {file.name}')
-                    if line=='1234ABCD':
+                    elif line=='1234ABCD':
                         cmd_output('*',sep="")
                         cmd_output("You have asked for a model that requires a HuggingFace API key to build.")
                         cmd_output(f"This needs to be provided in: {file.name}")
