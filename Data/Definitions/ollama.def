@@ -1,0 +1,20 @@
+Bootstrap: docker
+From: ollama/ollama:0.15.2
+
+%post -c /bin/bash
+    apt update && \
+    apt -y install python3.12 \
+    python3.12-venv python3-pip && \
+    python3 -m venv /envs/Ollama_env && \
+    source /envs/Ollama_env/bin/activate && \
+    pip install ollama &&
+    mkdir -p /Models/Ollama
+
+%startscript
+# Command to run when starting as a background process  
+    ollama serve &> ~/ollama.log
+
+%environment
+    #export OLLAMA_MODELS="/mnt/b8e9a3be-9bf1-423d-aeaa-72a35a7648c8/Bede_containers/Models/Ollama"
+    export OLLAMA_MODELS="/Models/Ollama"
+    export PATH="/envs/Ollama_env/bin:$PATH"

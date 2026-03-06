@@ -1,8 +1,8 @@
 # tests for Apptainer installation
 import pytest
 import subprocess
-from src.util_functions import check_test_output
-from src.run_container import main
+from bede_containers.util_functions import check_test_output
+from bede_containers.run_container import main
 
 def test_Apptainer():
     """

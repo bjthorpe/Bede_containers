@@ -2,9 +2,9 @@
 import pytest
 import sys
 import os
-from src.util_functions import check_test_output
-from src.run_container import main, format_command,CMD_FormatError 
-from src.run_container import check_container_config
+from .util_functions import check_test_output
+from bede_containers.run_container import main, format_command,CMD_FormatError 
+from bede_containers.run_container import check_container_config
 from pathlib import Path
 import subprocess
 

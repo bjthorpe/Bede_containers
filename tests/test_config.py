@@ -2,14 +2,14 @@
 import pytest
 import sys
 from dacite import exceptions
-from src.check_yaml import DuplicateKeyError
-from src.run_container import format_command
+from bede_containers.check_yaml import DuplicateKeyError
+from bede_containers.run_container import format_command
 from pathlib import Path
 import subprocess
 import os
 
 sys.path.append("../")
-from src.run_container import load_container_config_file, check_container_config
+from bede_containers.run_container import load_container_config_file, check_container_config
 
 @pytest.fixture
 def build_test_container():
@@ -92,7 +92,7 @@ def test_format_command(build_test_container):
     valid_commands = [
         "apptainer exec --nv Images/Example_Model1.sif hostname",
         "apptainer build --nv Images/Example_Model1.sif docker://alpine:latest",
-        "apptainer instance start --nv Images/Example_Model1.sif Test",
+        "apptainer instance start --nv Images/Example_Model1.sif Test hostname",
         "apptainer instance stop Test"
     ]
 

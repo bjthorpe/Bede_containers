@@ -4,11 +4,11 @@ import subprocess, sys, yaml
 from dataclasses import dataclass, field
 from typing import Optional, List
 from dacite import from_dict
-from src.check_yaml import DuplicateKeyDetector, DuplicateKeyError
-from src.check_yaml import is_valid_name
-from src.check_URI import check_container_def
-from src.util_functions import create_build_options, cmd_output, which
-from src.version import __version__
+from .check_yaml import DuplicateKeyDetector, DuplicateKeyError
+from .check_yaml import is_valid_name
+from .check_URI import check_container_def
+from .util_functions import create_build_options, cmd_output, which
+from .version import __version__
 import logging
 
 logging.basicConfig(
