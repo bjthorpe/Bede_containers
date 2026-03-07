@@ -4,6 +4,7 @@ import sys
 from dacite import exceptions
 from bede_containers.check_yaml import DuplicateKeyError
 from bede_containers.run_container import format_command
+from bede_containers.util_functions import get_toolkit_home
 from pathlib import Path
 import subprocess
 import os
@@ -13,19 +14,20 @@ from bede_containers.run_container import load_container_config_file, check_cont
 
 @pytest.fixture
 def build_test_container():
+    toolkit_home = get_toolkit_home()
     test_containers = ['Example_Model1.sif','Example_Model2.sif']
     # cleanup any potential old test containers
     for cont in test_containers:
-        if Path(f'Images/{cont}').exists():
-            os.rmdir(f'Images/{cont}')
+        if Path(f'{toolkit_home}/Images/{cont}').exists():
+            os.rmdir(f'{toolkit_home}/Images/{cont}')
         apptainer_command = f"apptainer \
-        build Images/{cont} docker://alpine:latest"
+        build {toolkit_home}/Images/{cont} docker://alpine:latest"
         proc = subprocess.run(apptainer_command, shell=True)
 #start tests
     yield
 #cleanup afterwards
     for cont in test_containers:
-        os.remove(f'Images/{cont}')
+        os.remove(f'{toolkit_home}/Images/{cont}')
     return
 
 def test_config_not_exist():
@@ -41,9 +43,10 @@ def test_no_description():
         load_container_config_file("tests/test_configs/test1.yaml")
 
 def test_no_image():
+    toolkit_home = get_toolkit_home()
     Containers = load_container_config_file("tests/test_configs/test2.yaml")
     for key in Containers:
-        assert Containers[key].image_file == f"Images/{key}.sif"
+        assert Containers[key].image_file == f"{toolkit_home}/Images/{key}.sif"
 
 def test_invalid_image():
     # tests loading an image that does not end in .sif
@@ -89,11 +92,13 @@ def test_format_command(build_test_container):
     '''
     test to check function that creates Apptainer commands
     '''
+    toolkit_home=get_toolkit_home()
+    
     valid_commands = [
-        "apptainer exec --nv Images/Example_Model1.sif hostname",
-        "apptainer build --nv Images/Example_Model1.sif docker://alpine:latest",
-        "apptainer instance start --nv Images/Example_Model1.sif Test hostname",
-        "apptainer instance stop Test"
+        f"apptainer exec --nv {toolkit_home}/Images/Example_Model1.sif hostname",
+        f"apptainer build --nv {toolkit_home}/Images/Example_Model1.sif docker://alpine:latest",
+        f"apptainer instance start --nv {toolkit_home}/Images/Example_Model1.sif Test hostname",
+        f"apptainer instance stop Test"
     ]
 
     Containers = load_container_config_file("tests/test_configs/valid.yaml")

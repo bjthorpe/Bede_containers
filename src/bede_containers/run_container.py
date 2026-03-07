@@ -7,13 +7,16 @@ from dacite import from_dict
 from .check_yaml import DuplicateKeyDetector, DuplicateKeyError
 from .check_yaml import is_valid_name
 from .check_URI import check_container_def
-from .util_functions import create_build_options, cmd_output, which
+from .util_functions import create_build_options, cmd_output, which, get_toolkit_home
 from .version import __version__
 import logging
+import sys
+
+toolkit_home = get_toolkit_home()
 
 logging.basicConfig(
     level=logging.INFO,
-    filename="logs/log.log",
+    filename=f"{toolkit_home}/logs/log.log",
     filemode="w",
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
@@ -124,7 +127,7 @@ def check_container_config(config_files: list):
                 )
             # if no image file is given set default image file name as "model_name.sif"
             if result.image_file == "":
-                result.image_file = f"Images/{key}.sif"
+                result.image_file = f"{toolkit_home}/Images/{key}.sif"
             elif result.image_file.endswith(".sif"):#
                 # Make parent directories if they don't exist
                 Path(result.image_file).parent.mkdir(parents=True, exist_ok=True)
@@ -135,7 +138,8 @@ def check_container_config(config_files: list):
                 )
             # if no definition file is given set default definition file name as "model_name.def"
             if result.container_definition == "":
-                result.container_definition = f"Definitions/{key}.def"
+                toolkit_home = get_toolkit_home()
+                result.container_definition = f"{toolkit_home}/Definitions/{key}.def"
             else:
                 result.container_definition = check_container_def(
                     result.container_definition
@@ -446,7 +450,8 @@ def main() -> int:
     if args.config_file:
         container_config = Path(args.config_file)
     else:
-        container_config = Path("Container_Configs/")
+        toolkit_home = get_toolkit_home()
+        container_config = Path(f"{toolkit_home}/Container_Configs/")
     cmd_output("*",sep="")
     cmd_output("Loading Model Config Files")
     cmd_output("*",sep="")

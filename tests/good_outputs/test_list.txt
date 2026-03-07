@@ -7,9 +7,11 @@
 ****************************************
 Name:          Group:    Description:
 ----------------------------------------
+CHGNet         CHGNet    CHGNet example container, pinched from castep26.
 uma-s-1        MetaAi    Version 1.0 of UMA model, trained using 150M parameters with 6M active.
 uma-s-1p1      MetaAi    Version 1.1 of UMA model, trained using 150M parameters with 6M active.
 uma-m-1p1      MetaAi    Version 1.1 of UMA model, trained using 1.4B parameters with 50M active.
+uma            MetaAi    Single container with all UMA models installed.
 TestContainer  Test      This container creates a cowsay container for testing
 TestContainer2 Test      A simple ubuntu container, pulled from docker
 NequIP-OAM-XL  NequIP    NequIP GNN foundational potential for materials "extra-large" model, optimised for accuracy.
@@ -17,6 +19,7 @@ Allegro-OAM-L  NequIP    Allegro GNN foundational potential for materials.
 NequIP-OAM-L   NequIP    NequIP GNN foundational potential for materials "large" model, optimised for speed and accuracy.
 Allegro-MP-L   NequIP    "Matbench-compliant" Allegro potential for materials "large" model, optimised for speed and accuracy.
 NequIP-MP-L    NequIP    "Matbench-compliant" NequIP GNN potential for materials "large" model, optimised for speed and accuracy.
+MatterSim      MatterSim Mattersim example container, pinched from castep26.
 eqV2-L-DeNS    MetaAi    EquiformerV2 model trained on MPtrj dataset only, using 153M parameters with denoising augmentation objectives (DeNS).
 eqV2-M-DeNS    MetaAi    EquiformerV2 model trained on MPtrj dataset only, using 86M parameters with denoising augmentation objectives (DeNS).
 eqV2-S-DeNS    MetaAi    EquiformerV2 model trained on MPtrj dataset only, using 31M parameters with denoising augmentation objectives (DeNS).
@@ -31,3 +34,5 @@ eSEN-30M-OMat  MetaAi    eSEN model pre-trained using only OMat dataset, with 30
 eqV2-S-OMat    MetaAi    EquiformerV2 model pre-trained using only OMat dataset, with 31M parameters.
 eqV2-M-OMat    MetaAi    EquiformerV2 model pre-trained using only OMat dataset, with 86M parameters.
 eqV2-L-OMat    MetaAi    EquiformerV2 model pre-trained using only OMat dataset, with 153M parameters.
+omat24         MetaAi    Single Container with all the OMAT24 models installed.
+Lammacpp       llm       This container is for testing lammacpp from dockerhub

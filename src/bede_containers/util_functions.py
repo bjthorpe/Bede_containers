@@ -1,6 +1,8 @@
 import re
 import logging
 import os
+from pathlib import Path
+import sys
 
 def cmd_output(message:str,length=80,sentinel='*',log=False,sep=" "):
     '''
@@ -43,7 +45,8 @@ def create_build_options(options: dict) -> str:
             # create a regex to check for valid API_keys 
             # (note: /w matches word characters i.e. letters, numbers and _)
             pattern = r'^\w+$'
-            with open('Container_Configs/API_Keys/HF_AUTH.key', 'r') as file:
+            toolkit_home=get_toolkit_home()
+            with open(f'{toolkit_home}/Container_Configs/API_Keys/HF_AUTH.key', 'r') as file:
                 lines = file.readlines()
                 for line in lines:
                     line = line.replace("\n", "")
@@ -93,3 +96,72 @@ def which(program:str):
                 return exe_file
 
     return None
+
+def create_toolkit_home():
+    '''
+    function to setup the working directory for ML_toolkit
+    This is ~/ML_toolkit by default  
+    '''
+    import argparse
+    import shutil
+    import yaml
+    parser = argparse.ArgumentParser(
+                    prog='setup-Ml_Toolkit',
+                    description='Setup function to perform final install steps for ML_Toolkit')
+    help_msg = f'Installation directory for ML_Toolkit, if not provided this defaults to {Path.home()}/ML_Toolkit'
+    parser.add_argument('toolkit_home',nargs='?',default=f'{Path.home()}/ML_Toolkit',help=help_msg)
+    parser.add_argument('-f', '--overwrite', action='store_true', help="force overwrite if directory exists")
+    
+    cmd_output("*",sep="",log=False)
+    args = parser.parse_args()
+    toolkit_home = args.toolkit_home
+    if Path(toolkit_home).exists() and not args.overwrite:
+        cmd_output(f'Installation path {toolkit_home} already exists',log=False)
+        cmd_output('to avoid data loss please provide a different path. Or',log=False)
+        cmd_output('use -f flag to force overwrite if you are sure it\'s safe.',log=False)
+        cmd_output("*",sep="",log=False)
+        return
+    elif Path(toolkit_home).exists() and args.overwrite:        
+        cmd_output(f'Overwriting existing directory {toolkit_home}',log=False)
+        cmd_output("*",sep="",log=False)
+        
+        shutil.rmtree(toolkit_home)
+    # create main directory
+
+    cmd_output(f'creating ML_Toolkit home in {toolkit_home}',log=False)
+    Path(toolkit_home).mkdir(parents=True, exist_ok=True)
+    # create logs and images dirs
+    Path(f'{toolkit_home}/logs').mkdir(parents=True, exist_ok=True)
+    Path(f'{toolkit_home}/Images').mkdir(parents=True, exist_ok=True)
+
+    # create symlinks to Container_Config, Definitions and scripts
+    venv_root = Path(sys.prefix)
+    dirs =['Container_Configs','Definitions','scripts']
+    for dir in dirs:
+        try:
+            shutil.copytree(f'{venv_root}/{dir}', f'{toolkit_home}/{dir}')
+        except Exception as e:
+            cmd_output(f"An Error occurred while copying data: {e}")
+        
+    cmd_output("*",sep="",log=False)
+    # add path to user config
+    import yaml
+    user_cfg={'ML_Toolkit_HOME': f'{toolkit_home}'} 
+    with open(f"{venv_root}/user_config.yaml", "w") as f:
+        yaml.dump(user_cfg,f)
+    
+    return
+
+def get_toolkit_home():
+    import yaml
+    #get toolkit home from usr_config
+    venv_root = Path(sys.prefix)
+    with open(f"{venv_root}/user_config.yaml", "r") as f:
+        usr_cfg = yaml.safe_load(f)
+    
+    toolkit_home = usr_cfg['ML_Toolkit_HOME']
+    
+    if toolkit_home == '':
+        raise ValueError('could not find ML_Toolkit_HOME please ensure you have run init_ml-toolkit')
+    
+    return toolkit_home

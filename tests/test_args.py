@@ -5,38 +5,41 @@ import os
 from .util_functions import check_test_output
 from bede_containers.run_container import main, format_command,CMD_FormatError 
 from bede_containers.run_container import check_container_config
+from bede_containers.util_functions import get_toolkit_home
 from pathlib import Path
 import subprocess
 
 @pytest.fixture
 def build_test_container():
     # cleanup any potential old test containers
-    if Path(f'Images/TestContainer.sif').exists():
-        os.remove(f'Images/TestContainer.sif')
+    toolkit_home = get_toolkit_home()
+    if Path(f'{toolkit_home}/Images/TestContainer.sif').exists():
+        os.remove(f'{toolkit_home}/Images/TestContainer.sif')
 
-    apptainer_command = f"apptainer build Images/TestContainer.sif docker://alpine:latest"
+    apptainer_command = f"apptainer build {toolkit_home}/Images/TestContainer.sif docker://alpine:latest"
     proc = subprocess.run(apptainer_command, shell=True)
 #start tests
     yield
 #cleanup afterwards
-    os.remove(f'Images/TestContainer.sif')
+    os.remove(f'{toolkit_home}/Images/TestContainer.sif')
     return
 
 @pytest.fixture
 def build_test_container_2():
+    toolkit_home = get_toolkit_home()
     test_containers = ['Example_Model1.sif','Example_Model2.sif']
     # cleanup any potential old test containers
     for cont in test_containers:
-        if Path(f'Images/{cont}').exists():
-            os.rmdir(f'Images/{cont}')
+        if Path(f'{toolkit_home}/Images/{cont}').exists():
+            os.rmdir(f'{toolkit_home}/Images/{cont}')
         apptainer_command = f"apptainer \
-        build Images/{cont} docker://alpine:latest"
+        build {toolkit_home}/Images/{cont} docker://alpine:latest"
         proc = subprocess.run(apptainer_command, shell=True)
 #start tests
     yield
 #cleanup afterwards
     for cont in test_containers:
-        os.remove(f'Images/{cont}')
+        os.remove(f'{toolkit_home}/Images/{cont}')
     return
 
 def test_list(capfd, monkeypatch):
@@ -82,7 +85,7 @@ def test_build_and_run(monkeypatch):
     check build and run flags work 
     with a simple ubuntu container.
     '''
-    
+    toolkit_home = get_toolkit_home()
     prog = sys.argv[0]
     # first build container
     monkeypatch.setattr("sys.argv", [prog,"build", "TestContainer2"])
@@ -91,7 +94,7 @@ def test_build_and_run(monkeypatch):
     # now run continer
     monkeypatch.setattr("sys.argv", [prog,"run", "TestContainer2","hostname"])
     return_code = main()
-    os.remove("Images/TestContainer2.sif")
+    os.remove(f"{toolkit_home}/Images/TestContainer2.sif")
     assert return_code == 0
 
 def test_unknown_operation():

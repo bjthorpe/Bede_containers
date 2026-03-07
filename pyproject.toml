@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "dacite>=1.9.2",
+    "pathlib>=1.0.1",
     "pyyaml>=6.0.3",
 ]
 
@@ -21,13 +22,11 @@ dev = [
 
 [project.scripts]
 ml-toolkit = "bede_containers:main"
+init_ml-toolkit = "bede_containers:create_toolkit_home"
 
 [build-system]
 requires = ["uv_build>=0.8.23,<0.9.0"]
 build-backend = "uv_build"
 
-#[tool.uv.build-backend]
-#source-include = ["src/your_package/**"]
-
 [tool.uv.build-backend]
-data = { data = "Data", scripts = "scripts" }
+data = { data = "Data" }

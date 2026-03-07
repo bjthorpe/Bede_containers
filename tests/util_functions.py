@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+import pytest
+
 def check_test_output(golden_file, pytest_output,nlines=None):
     """
     Function to check that the stdout and stderr captured

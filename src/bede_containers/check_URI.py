@@ -1,5 +1,7 @@
 import re
 from pathlib import Path
+import sys
+from .util_functions import get_toolkit_home
 # define regex's to check 3 common types of URI used by Apptainer
 LIBRARY_RE = re.compile(
     r"^library://([A-Za-z0-9_.-]*)"
@@ -56,8 +58,18 @@ def check_container_def(definition:str)->str:
     else:
         # still not a uri so check if its a valid path to a file
         p = Path(definition)
+        if not p.is_absolute():
+            # check if its relative to toolkit_home
+            toolkit_home = get_toolkit_home()
+            venv_root = Path(toolkit_home)
+            p = venv_root / p
+            full_path = f'{venv_root}/{definition}'
+        else:
+            full_path = definition
+        
         if p.exists() and p.is_file() and definition.endswith(".def"):
-            return definition
+            return full_path
+        
         # no idea what this is so raise error
         msg = f" Container definition: {definition} is not valid. \n \
             This must be a path to an existing file, or an Apptainer URI \n \

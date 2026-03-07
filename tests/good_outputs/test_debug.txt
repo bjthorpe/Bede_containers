@@ -1,3 +1,4 @@
+/home/ben/ML_Toolkit
 ********************************************************************************
 ************************** Loading Model Config Files **************************
 ********************************************************************************
@@ -7,4 +8,4 @@
 ********************************************************************************
 Debug enabled
 current config will run the following command:
-apptainer exec --nv Images/TestContainer.sif hostname
+apptainer exec --nv /home/ben/ML_Toolkit/Images/TestContainer.sif hostname
