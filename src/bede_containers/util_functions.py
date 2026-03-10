@@ -41,13 +41,13 @@ def create_build_options(options: dict) -> str:
     from the same family and ultimately saves us using multiple definition files with
     only tiny differences.
     """
+    toolkit_home=get_toolkit_home()
     if options:
         # check for huggingface api key
         if 'HF_AUTH' in options:
             # create a regex to check for valid API_keys 
             # (note: /w matches word characters i.e. letters, numbers and _)
             pattern = r'^\w+$'
-            toolkit_home=get_toolkit_home()
             with open(f'{toolkit_home}/Container_Configs/API_Keys/HF_AUTH.key', 'r') as file:
                 lines = file.readlines()
                 for line in lines:
@@ -71,6 +71,8 @@ def create_build_options(options: dict) -> str:
         build_args_str = "".join([f" --build-arg {k}={options[k]}" for k in options])
     else:
         build_args_str = ""
+    # always add toolkit_home to build args
+    build_args_str = build_args_str + f" --build-arg toolkit_home={toolkit_home}"
     return build_args_str
 
 

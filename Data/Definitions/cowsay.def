@@ -7,6 +7,11 @@ From: ubuntu:24.04
     locale-gen en_US.UTF-8 && \
     apt -y install cowsay fortune-mod
 
+    # we don't really need anything from the host system 
+    # so this is just a bodge to get rid of the error about 
+    # not using the toolkit_home build option  
+    echo "Nothing to copy from {{ toolkit_home }}"
+
 %startscript
     # Run cowsay with a default message
     /usr/games/fortune | /usr/games/cowsay 
