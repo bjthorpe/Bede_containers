@@ -5,3 +5,4 @@ MatterSim:
   group: MatterSim
   image_file: Images/MatterSim/MatterSim.sif
   container_definition: Definitions/MatterSim/MatterSim.def
+  build_options: {'toolkit_home':'~/ML_Toolkit'}

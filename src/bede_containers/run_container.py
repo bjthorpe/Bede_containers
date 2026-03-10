@@ -99,7 +99,7 @@ def check_container_config(config_files: list):
     and create dict of all container configs with names as keys.
     """
     Containers = {}
-
+    toolkit_home = get_toolkit_home()
     cmd_output("Checking all config files.",log=True,sentinel=" ")
     for conf_file in config_files:
         with open(conf_file, "r") as file:
@@ -128,7 +128,11 @@ def check_container_config(config_files: list):
             # if no image file is given set default image file name as "model_name.sif"
             if result.image_file == "":
                 result.image_file = f"{toolkit_home}/Images/{key}.sif"
-            elif result.image_file.endswith(".sif"):#
+            # if path is not absolute make it relative to toolkit home
+            elif not Path(result.image_file).is_absolute():
+                result.image_file = f"{toolkit_home}/{result.image_file}"
+            
+            if result.image_file.endswith(".sif"):
                 # Make parent directories if they don't exist
                 Path(result.image_file).parent.mkdir(parents=True, exist_ok=True)
             else:
@@ -138,7 +142,6 @@ def check_container_config(config_files: list):
                 )
             # if no definition file is given set default definition file name as "model_name.def"
             if result.container_definition == "":
-                toolkit_home = get_toolkit_home()
                 result.container_definition = f"{toolkit_home}/Definitions/{key}.def"
             else:
                 result.container_definition = check_container_def(

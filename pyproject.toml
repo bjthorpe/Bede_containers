@@ -22,7 +22,7 @@ dev = [
 
 [project.scripts]
 ml-toolkit = "bede_containers:main"
-init_ml-toolkit = "bede_containers:create_toolkit_home"
+install_ml-toolkit = "setup:create_toolkit_home"
 
 [build-system]
 requires = ["uv_build>=0.8.23,<0.9.0"]
@@ -30,3 +30,4 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 data = { data = "Data" }
+module-name = ["bede_containers", "setup"]
