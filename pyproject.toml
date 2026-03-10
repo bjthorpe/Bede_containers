@@ -23,6 +23,7 @@ dev = [
 [project.scripts]
 ml-toolkit = "bede_containers:main"
 install_ml-toolkit = "setup:create_toolkit_home"
+install_apptainer = "setup:install_apptainer"
 
 [build-system]
 requires = ["uv_build>=0.8.23,<0.9.0"]

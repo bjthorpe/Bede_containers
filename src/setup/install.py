@@ -116,9 +116,8 @@ def create_toolkit_home():
                     prog='setup-Ml_Toolkit',
                     description='Setup function to perform final install steps for ML_Toolkit')
     help_msg = f'Installation directory for ML_Toolkit, if not provided this defaults to {Path.home()}/ML_Toolkit'
-    parser.add_argument('toolkit_home',nargs='?',default=f'{Path.home()}/ML_Toolkit',help=help_msg)
+    parser.add_argument('-p','--toolkit_home',nargs='?',default=f'{Path.home()}/ML_Toolkit',help=help_msg)
     parser.add_argument('-f', '--overwrite', action='store_true', help="force overwrite if directory exists")
-    
     # check if using conda or venv
     conda_prefix = os.environ.get("CONDA_PREFIX")
     if conda_prefix:
