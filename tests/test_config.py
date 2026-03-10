@@ -12,7 +12,7 @@ import os
 sys.path.append("../")
 from bede_containers.run_container import load_container_config_file, check_container_config
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def build_test_container():
     toolkit_home = get_toolkit_home()
     test_containers = ['Example_Model1.sif','Example_Model2.sif']
@@ -96,7 +96,7 @@ def test_format_command(build_test_container):
     
     valid_commands = [
         f"apptainer exec --nv {toolkit_home}/Images/Example_Model1.sif hostname",
-        f"apptainer build --nv {toolkit_home}/Images/Example_Model1.sif docker://alpine:latest",
+        f"apptainer build --build-arg toolkit_home={toolkit_home} --nv {toolkit_home}/Images/Example_Model1.sif docker://alpine:latest",
         f"apptainer instance start --nv {toolkit_home}/Images/Example_Model1.sif Test hostname",
         f"apptainer instance stop Test"
     ]
