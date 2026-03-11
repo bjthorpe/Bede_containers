@@ -61,18 +61,17 @@ def check_config_options(container:dict,name:str,filename:str):
     valid_options = list(blank_config.__dict__.keys())
     
     container_options = list(container.keys())
-    logging.info(f"--- Container: {name} ---")
     for option in container_options:
         if option in valid_options:
-            logging.info(f"{option}: {container[option]}")
+            # logging.info(f"{option}: {container[option]}")
             continue
         # check for case sensitivity and fix if necessary
         elif option.lower() in valid_options:
-            logging.warning(f"Option: {option} is not valid. Assuming you meant: {option.lower()}")
+            logging.warning(f"Option: {option} is not valid in config of Contatiner {name}. Assuming you meant: {option.lower()}")
             new_key = option.lower()
             container[new_key] = container[option]
             container.pop(option)
-            logging.info(f"{new_key}: {container[new_key]}")
+            #logging.info(f"{new_key}: {container[new_key]}")
             continue
         else:
             raise ValueError(
@@ -100,7 +99,7 @@ def check_container_config(config_files: list):
     """
     Containers = {}
     toolkit_home = get_toolkit_home()
-    cmd_output("Checking all config files.",log=True,sentinel=" ")
+    cmd_output("Checking config files.",log=True,sentinel=" ")
     for conf_file in config_files:
         with open(conf_file, "r") as file:
             cmd_output(f"Reading config from file: {file.name}",sentinel='-',log=True)
@@ -444,7 +443,12 @@ def list_containers(Containers: dict, group: str = ""):
             output = f"{key:<15}{value.group:<10}{value.description}"
             print(output)
 
+def config_to_log(config:ContainerConfig,model_name:str):
+    cmd_output(f"Loading Container: {model_name}",sentinel='-',log=True)
 
+    for key, value in config.__dict__.items():
+        logging.info(f"{key}: {value}")
+    
 ###############################################################################
 # Main program starts here
 ###############################################################################
@@ -473,6 +477,7 @@ def main() -> int:
             f"no model named {model_name} was found in a config file.\n \
                             Model must be one of \n{list(Containers.keys())}"
         )
+    config_to_log(Containers[model_name],model_name)
     # check to see if Apptainer is available on the system path
     if which('apptainer') is None:
         msg = f"Apptainer does not appear to be installed or is not "
@@ -501,7 +506,3 @@ def main() -> int:
         return proc.returncode
     # return code is used by pytest to check code ran successfully
     return 0
-
-
-# if __name__ == "__main__":
-#     return_code = main()
