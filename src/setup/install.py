@@ -96,6 +96,18 @@ def update_rc_file(rc_file, block):
 
     rc_file.write_text(new_content)
     return
+def get_user_input(msg:str,dir:str):
+    while True:
+        user_input = input(f'{msg} yes/no: ')
+
+        if user_input.lower() == 'yes':
+            print(f'updating {dir}')
+            return True
+        elif user_input.lower() == 'no':
+            print(f'Skipping update for {dir}')
+            return False
+        else:
+            print('Type yes or no')
 
 def create_toolkit_home():
     '''
@@ -118,6 +130,7 @@ def create_toolkit_home():
     help_msg = f'Installation directory for ML_Toolkit, if not provided this defaults to {Path.home()}/ML_Toolkit'
     parser.add_argument('-p','--toolkit_home',nargs='?',default=f'{Path.home()}/ML_Toolkit',help=help_msg)
     parser.add_argument('-f', '--overwrite', action='store_true', help="force overwrite if directory exists")
+    parser.add_argument('-u', '--update', action='store_true', help="update existing installation")
     # check if using conda or venv
     conda_prefix = os.environ.get("CONDA_PREFIX")
     if conda_prefix:
@@ -128,32 +141,44 @@ def create_toolkit_home():
     cmd_output("*",sep="")
     args = parser.parse_args()
     toolkit_home = args.toolkit_home
-    toolkit_home_default = f'{Path.home()}/ML_Toolkit'
-    if Path(toolkit_home).exists() and not args.overwrite:
-        cmd_output(f'Installation path {toolkit_home} already exists',sentinel=' ')
-        cmd_output('to avoid data loss please provide a different path. Or',sentinel=' ')
-        cmd_output('use -f flag to force overwrite if you are sure it\'s safe.',sentinel=' ')
-        cmd_output("*",sep="")
-        return
-    elif Path(toolkit_home).exists() and args.overwrite:        
-        cmd_output(f'Overwriting existing directory {toolkit_home}',sentinel=' ')
-        cmd_output("*",sep="")
-        
-        shutil.rmtree(toolkit_home)
-    # create main directory
+    if not args.update:
+        if Path(toolkit_home).exists() and not args.overwrite:
+            cmd_output(f'Installation path {toolkit_home} already exists',sentinel=' ')
+            cmd_output('to avoid data loss please provide a different path. Or',sentinel=' ')
+            cmd_output('use -f flag to force overwrite if you are sure it\'s safe.',sentinel=' ')
+            cmd_output("*",sep="")
+            return
+        elif Path(toolkit_home).exists() and args.overwrite:        
+            cmd_output(f'Overwriting existing directory {toolkit_home}',sentinel=' ')
+            cmd_output("*",sep="")
+            shutil.rmtree(toolkit_home)
+    
+        # create main directory
 
-    cmd_output(f'creating ML_Toolkit home in {toolkit_home}',sentinel=' ')
-    Path(toolkit_home).mkdir(parents=True, exist_ok=True)
-    Path(toolkit_home_default).mkdir(parents=True, exist_ok=True)
-    # create logs and images dirs
-    Path(f'{toolkit_home}/logs').mkdir(parents=True, exist_ok=True)
-    Path(f'{toolkit_home}/Images').mkdir(parents=True, exist_ok=True)
+        cmd_output(f'creating ML_Toolkit home in {toolkit_home}',sentinel=' ')
+        Path(toolkit_home).mkdir(parents=True, exist_ok=True)
+        # create logs and images dirs
+        Path(f'{toolkit_home}/logs').mkdir(parents=True, exist_ok=True)
+        Path(f'{toolkit_home}/Images').mkdir(parents=True, exist_ok=True)
+        Path(f'{toolkit_home}/Models').mkdir(parents=True, exist_ok=True)
+    else:
+        toolkit_home = os.environ.get("ML_TOOLKIT_HOME",'')
+        if toolkit_home == '':
+            cmd_output(f'Can not find existing installation of ml-toolkit to update',sentinel=' ')
+            cmd_output(f'please set the ML_TOOLKIT_HOME environment variable',sentinel=' ')
+            sys.exit(1)
+        cmd_output(f'updating existing ML_Toolkit found in {toolkit_home}',sentinel=' ')
 
-    # create symlinks to Container_Config, Definitions and scripts
-    dirs =['Container_Configs','Definitions','scripts']
+    # create symlinks to Container_Config, Definitions and Scripts
+    dirs =['Container_Configs','Definitions','Scripts']
+
     for dir in dirs:
+        overwrite=True
         try:
-            shutil.copytree(f'{venv_root}/{dir}', f'{toolkit_home}/{dir}')
+            if args.update:
+                overwrite = get_user_input(f"Update {dir}?",dir)
+            if overwrite:
+                shutil.copytree(f'{venv_root}/{dir}', f'{toolkit_home}/{dir}',dirs_exist_ok=True)
         except Exception as e:
             cmd_output(f"An Error occurred while copying data: \n {e}",sentinel=' ')
             sys.exit(1)
