@@ -1,7 +1,7 @@
 # Example script to get potential of H2 molecule from with MatterSim through ASE
 # This should be run inside the MatterSim container.
 
-from .Matbench_Models import Get_ASE_Calculator
+from Matbench_Models import Get_ASE_Calculator
 from ase import Atoms
 from ase.optimize import BFGS
 from ase.calculators.nwchem import NWChem
