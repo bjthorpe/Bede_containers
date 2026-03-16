@@ -48,7 +48,7 @@ def create_build_options(options: dict) -> str:
             # create a regex to check for valid API_keys 
             # (note: /w matches word characters i.e. letters, numbers and _)
             pattern = r'^\w+$'
-            with open(f'{toolkit_home}/Container_Configs/API_Keys/HF_AUTH.key', 'r') as file:
+            with open(f'{toolkit_home}/API_Keys/HF_AUTH.key', 'r') as file:
                 lines = file.readlines()
                 for line in lines:
                     line = line.replace("\n", "")

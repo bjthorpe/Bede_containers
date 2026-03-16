@@ -100,10 +100,10 @@ def get_user_input(msg:str,dir:str):
     while True:
         user_input = input(f'{msg} yes/no: ')
 
-        if user_input.lower() == 'yes':
+        if user_input.lower() == 'yes' or user_input.lower() == 'y':
             print(f'updating {dir}')
             return True
-        elif user_input.lower() == 'no':
+        elif user_input.lower() == 'no' or user_input.lower() == 'n':
             print(f'Skipping update for {dir}')
             return False
         else:
@@ -141,6 +141,7 @@ def create_toolkit_home():
     cmd_output("*",sep="")
     args = parser.parse_args()
     toolkit_home = args.toolkit_home
+    dirs =['Container_Configs','Definitions','Scripts','API_Keys']
     if not args.update:
         if Path(toolkit_home).exists() and not args.overwrite:
             cmd_output(f'Installation path {toolkit_home} already exists',sentinel=' ')
@@ -161,6 +162,13 @@ def create_toolkit_home():
         Path(f'{toolkit_home}/logs').mkdir(parents=True, exist_ok=True)
         Path(f'{toolkit_home}/Images').mkdir(parents=True, exist_ok=True)
         Path(f'{toolkit_home}/Models').mkdir(parents=True, exist_ok=True)
+        # copy files into Container_Config, Definitions and Scripts
+        for dir in dirs:
+            try:
+                shutil.copytree(f'{venv_root}/{dir}', f'{toolkit_home}/{dir}',dirs_exist_ok=True)
+            except Exception as e:
+                cmd_output(f"An Error occurred while copying data: \n {e}",sentinel=' ')
+                sys.exit(1)
     else:
         toolkit_home = os.environ.get("ML_TOOLKIT_HOME",'')
         if toolkit_home == '':
@@ -169,19 +177,15 @@ def create_toolkit_home():
             sys.exit(1)
         cmd_output(f'updating existing ML_Toolkit found in {toolkit_home}',sentinel=' ')
 
-    # create symlinks to Container_Config, Definitions and Scripts
-    dirs =['Container_Configs','Definitions','Scripts']
-
-    for dir in dirs:
-        overwrite=True
-        try:
-            if args.update:
+        for dir in dirs:
+            overwrite=True
+            try:
                 overwrite = get_user_input(f"Update {dir}?",dir)
-            if overwrite:
-                shutil.copytree(f'{venv_root}/{dir}', f'{toolkit_home}/{dir}',dirs_exist_ok=True)
-        except Exception as e:
-            cmd_output(f"An Error occurred while copying data: \n {e}",sentinel=' ')
-            sys.exit(1)
+                if overwrite:
+                    shutil.copytree(f'{venv_root}/{dir}', f'{toolkit_home}/{dir}',dirs_exist_ok=True)
+            except Exception as e:
+                cmd_output(f"An Error occurred while copying data: \n {e}",sentinel=' ')
+                sys.exit(1)
         
     cmd_output("*",sep="")
 
