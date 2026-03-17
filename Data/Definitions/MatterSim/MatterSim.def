@@ -24,34 +24,15 @@ From: python:3.11
     TIMEOUT_OVERWRITE=60
     NUM_SERVERS=1
 
-    # Preprocess arguments to convert long options to short
-    args=()
-    for arg in "$@"; do
-    case "$arg" in
-        --port) args+=("-p "${arg#--port=}") ;; # here ${arg#--port=} Extracts value after =
-        --timeout) args+=("-t "${arg#--timeout=}") ;; 
-        --Nservers=*) args+=("-n" "${arg#--Nservers=}") ;; 
-        --) args+=("$arg"); break ;;
-        *) args+=("$arg") ;;
-    esac
-    done
-    set -- "${args[@]}"
-    
-    # Parse options with getopts
-    verbose=0
-    file=""
-
-    done
-
     # go through arguments and set variables as appropriate
     while getopts "hp:t:N:" opt; do
         case ${opt} in
         h)
             echo "Usage: $0 [OPTIONS]"
-            echo "  -h, --help        Show this help message"
-            echo "  -p, --port PORT_NUM    Set TCP port number, must be greater than 1024 (default: 5000)"
-            echo "  -t, --timeout TIME   Server timeout in seconds, must be greater than 0 (default: 60)"
-            echo "  -N, --Nservers NUM_SERVERS   Number of python servers to spawn, must be greater than 0 (default: 1)"
+            echo "  -h        Show this help message"
+            echo "  -p PORT_NUM    Set TCP port number, must be greater than 1024 (default: 5000)"
+            echo "  -t TIME   Server timeout in seconds, must be greater than 0 (default: 60)"
+            echo "  -N NUM_SERVERS   Number of python servers to spawn, must be greater than 0 (default: 1)"
             exit 0
             ;;
         p)
