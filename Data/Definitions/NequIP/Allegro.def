@@ -1,28 +1,125 @@
 Bootstrap: docker
-#From: python:3.14.2-trixie
-From: pytorch/pytorch:2.9.0-cuda13.0-cudnn9-devel
+From: python:3.11
+%files
+    {{ toolkit_home }}/Scripts/HAProxy.cfg cfg/
+    {{ toolkit_home }}/Scripts/ML_server.py prediction/
+    {{ toolkit_home }}/Scripts/Matbench_Models.py prediction/
+    {{ toolkit_home }}/Scripts/utility prediction/utility
+    {{ toolkit_home }}/Scripts/server prediction/server
+    {{ toolkit_home }}/Scripts/Nequip_compile.sh /Models/compile/
+    {{ toolkit_home }}/Models/Nequip  /Models/Nequip
 
 %post -c /bin/bash
-
+    export NEQUIP_CACHE_DIR=/Models/Nequip
+    export CUDA_HOME=/usr/local/cuda
     apt update
-    apt install -y build-essential
+    if [[ {{ device }} == "cuda" ]]; then \
+#check hostname for special case if running on Bede
+	HOSTNAME=$(/usr/bin/hostname)
+        if [[ $HOSTNAME =~ gg[0-9]{3}\.bede\.dur\.ac\.uk ]]; then \
+            echo -e "***********************************************************************************";
+            echo -e " ERROR: You have asked for the cuda version of Nequip but are building on the Bede";                 
+            echo -e " login node. Unfortunately, the Bede login nodes cannot access GPUs. Thus you will ";
+	        echo -e " need to either set device to cpu in the config or run ml-toolkit build on the ";
+            echo -e " compute nodes using sbatch. You will also need to module load cuda";
+            echo -e "***********************************************************************************";
+	        exit 11       
+        fi; 
+    fi
+
+    apt install -y build-essential git g++ haproxy
     python3 -m venv /envs/ML_env
     source /envs/ML_env/bin/activate
     pip install --upgrade pip
     pip install torch --index-url https://download.pytorch.org/whl/cu126
-    pip install nequip-allegro
-    echo {{ checkpoint_file }}
-    echo {{ repo }}
+    pip install nequip-allegro twisted
 
-#    nequip-compile \
-#  nequip.net:mir-group/{{ repo }}:0.1 \
-#  mir-group__{{ checkpoint_file }} \
-#  --mode aotinductor \
-#  --device cuda \
-#  --target ase
+    #compile the downloaded model
+    /Models/compile/Nequip_compile.sh \
+    /Models/Nequip/{{ model_name }}-0.1.nequip.zip \
+    mir-group__{{ model_name }}__0.1.nequip.pt2 {{ device }}    
 
 %startscript
-    python3 --version
+    # start with sensible defaults
+    LISTEN_PORT=5000
+    TIMEOUT_OVERWRITE=60
+    NUM_SERVERS=1
+    # get model name from the yaml file
+    MODEL={{ model_name }}
 
-%runscript
-    python3 --version
+    # go through arguments and set variables as appropriate
+    while getopts "hp:t:N:" opt; do
+        case ${opt} in
+        h)
+            echo "Usage: $0 [OPTIONS]"
+            echo "  -h        Show this help message"
+            echo "  -p PORT_NUM    Set TCP port number, must be greater than 1024 (default: 5000)"
+            echo "  -t TIMEOUT   Server timeout in seconds, must be greater than 0 (default: 60)"
+            echo "  -N NUM_SERVERS   Number of python servers to spawn, must be greater than 0 (default: 1)"
+            exit 0
+            ;;
+        p)
+            if [ "${OPTARG}" -gt 1024 ] 2>/dev/null; then
+                LISTEN_PORT=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <port> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
+            
+        ;;
+        t)
+            if [ "${OPTARG}" -gt 0 ] 2>/dev/null; then
+                TIMEOUT_OVERWRITE=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <timeout> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
+        ;;
+        N)
+            if [ "${OPTARG}" -gt 0 ] 2>/dev/null; then
+                NUM_SERVERS=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <NServers> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
+        ;;
+        ?)
+        echo "Invalid option: -${OPTARG}." >&2
+        exit 1
+        ;;
+        esac
+    done
+
+    MAX_CONNS=$(($NUM_SERVERS*3))
+
+    # Start the python environment
+    . /envs/ML_env/bin/activate
+
+    # Move the base HAProxy config and server script to tmp for modification
+    cp /cfg/HAProxy.cfg /tmp/HAProxy_${LISTEN_PORT}.cfg
+    echo "" >> /tmp/HAProxy_${LISTEN_PORT}.cfg
+
+    # Add the load balancer listen port to the current instance config
+    sed -i "s/LISTEN_PORT/${LISTEN_PORT}/g" /tmp/HAProxy_${LISTEN_PORT}.cfg
+    sed -i "s/MAX_CONNS/${MAX_CONNS}/g" /tmp/HAProxy_${LISTEN_PORT}.cfg
+
+    # Modify the general timeout time in both HAproxy and the server script
+    sed -i "s/TIMEOUT_OVERWRITE/${TIMEOUT_OVERWRITE}/g" /tmp/HAProxy_${LISTEN_PORT}.cfg
+
+    # Create the number of servers given and add these to the config file
+    s=1
+    while [ $s -le $NUM_SERVERS ]; do
+        # Create a python server
+	python3 /prediction/ML_server.py -P $(($LISTEN_PORT+$s)) -L info -T ${TIMEOUT_OVERWRITE} -M {{ model_name }} &
+	# Add it to the HAProxy config (in tmp)
+	echo "    server p${s} 127.0.0.1:$(($LISTEN_PORT+$s))" >> /tmp/HAProxy_${LISTEN_PORT}.cfg
+	s=$((s+1))
+    done
+
+    # Run server in Daemon mode (using modified config file in tmp)
+    haproxy -f /tmp/HAProxy_${LISTEN_PORT}.cfg -D >> {{ toolkit_home }}/logs/HAProxy.log 2>&1
+
+
+%environment
+    #export CUDA_HOME=/usr/local/cuda
+    export NEQUIP_CACHE_DIR=/Models/Nequip
