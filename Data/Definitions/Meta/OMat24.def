@@ -127,7 +127,7 @@ From: python:3.11
     done
 
     # Run server in Daemon mode (using modified config file in tmp)
-    haproxy -f /tmp/HAProxy_${LISTEN_PORT}.cfg -D >> `pwd`/logs/HAProxy.log 2>&1
+    haproxy -f /tmp/HAProxy_${LISTEN_PORT}.cfg -D >> {{ toolkit_home }}/logs/HAProxy.log 2>&1
 
 %environment
     export HF_HOME=/Models
