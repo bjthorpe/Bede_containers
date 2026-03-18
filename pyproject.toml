@@ -1,6 +1,6 @@
 [project]
 name = "bede-ml-toolkit"
-version = "1.0.3"
+version = "1.0.4"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -30,4 +30,5 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 data = { data = "Data" }
+source-exclude = ["Data/Models","Data/logs","Data/Images"]
 module-name = ["bede_containers", "setup"]
