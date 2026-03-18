@@ -13,30 +13,12 @@ From: python:3.11
     export NEQUIP_CACHE_DIR=/Models/Nequip
     export CUDA_HOME=/usr/local/cuda
     apt update
-    if [[ {{ device }} == "cuda" ]]; then \
-#check hostname for special case if running on Bede
-	HOSTNAME=$(/usr/bin/hostname)
-        if [[ $HOSTNAME =~ gg[0-9]{3}\.bede\.dur\.ac\.uk ]]; then \
-            echo -e "***********************************************************************************";
-            echo -e " ERROR: You have asked for the cuda version of Nequip but are building on the Bede";                 
-            echo -e " login node. Unfortunately, the Bede login nodes cannot access GPUs. Thus you will ";
-	        echo -e " need to either set device to cpu in the config or run ml-toolkit build on the ";
-            echo -e " compute nodes using sbatch. You will also need to module load cuda";
-            echo -e "***********************************************************************************";
-	        exit 11       
-        fi; 
-    fi
-
     apt install -y build-essential git g++ haproxy
     python3 -m venv /envs/ML_env
     source /envs/ML_env/bin/activate
     pip install --upgrade pip
     pip install torch --extra-index-url https://download.pytorch.org/whl/cu129 
     pip install twisted nequip
-    #compile the downloaded model
-    /Models/compile/Nequip_compile.sh \
-    /Models/Nequip/{{ model_name }}-0.1.nequip.zip \
-    mir-group__{{ model_name }}__0.1.nequip.pt2 {{ device }}
 
 %startscript
     # start with sensible defaults
@@ -119,5 +101,6 @@ From: python:3.11
     haproxy -f /tmp/HAProxy_${LISTEN_PORT}.cfg -D >> {{ toolkit_home }}/logs/HAProxy.log 2>&1
 
 %environment
-    #export CUDA_HOME=/usr/local/cuda
+    export CUDA_HOME=/usr/local/cuda
     export NEQUIP_CACHE_DIR=/Models/Nequip
+    export ML_TOOLKIT_HOME={{ toolkit_home }}

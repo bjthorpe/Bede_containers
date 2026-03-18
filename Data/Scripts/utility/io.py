@@ -28,7 +28,8 @@ def parse_arguments():
     parser.add_argument('-t','--task',type=str,default='None',
                         help='The task to use for Meta UMA models, e.g. omol, omat, omc etc.'
                         ' This is required by Meta UMA Models but is ignored by all other models')
-
+    parser.add_argument('-d','--device',type=str,default='cpu',
+                        help='The device to use for inference currently cpu or cuda')
     args = parser.parse_args()
 
     if args.logging_level not in [ 'debug', 'info', 'warning', 'error', 'critical' ]:
@@ -37,5 +38,7 @@ def parse_arguments():
         parser.error('Port must be in range [1025,65535]')
     if args.timeout_cutoff<1:
         parser.error('Timeout cutoff must be > 0')
-
+    devices=['cpu','cuda']
+    if args.device not in devices:
+        parser.error('device must be cpu or cuda')
     return args

@@ -9,7 +9,7 @@ from utility import castep_units
 from Matbench_Models import Get_ASE_Calculator
 from ase.io import read
 
-def initialise_model(ML_model_option,ML_task=None):
+def initialise_model(ML_model_option,ML_task=None,device='cpu'):
     '''
     Initialise the ML model, only need to do this once
     '''
@@ -68,7 +68,7 @@ def initialise_model(ML_model_option,ML_task=None):
         except:
             initialise_error('ASE module cannot be found, please install.')
 
-        ML_model = Get_ASE_Calculator(ML_model_option_lower,device='cpu')
+        ML_model = Get_ASE_Calculator(ML_model_option_lower,device=device)
 
 
     elif ML_model_option_lower in Mace:
@@ -90,7 +90,7 @@ def initialise_model(ML_model_option,ML_task=None):
 
         ML_model = Get_ASE_Calculator(ML_model_option_lower,model_paths=MACE_model_path,
                                     default_dtype='float64',
-                                    device='cpu')
+                                    device=device)
     # Meta(facebook) OMAT24
     elif ML_model_option_lower in Meta_OMat24:
 
@@ -124,8 +124,21 @@ def initialise_model(ML_model_option,ML_task=None):
                              This must be one of: oc20, omat, omol ,odac, or, omc".')
         
 
-        ML_model = Get_ASE_Calculator(ML_model_option_lower,device='cpu',task=ML_task)
+        ML_model = Get_ASE_Calculator(ML_model_option_lower,device=device,task=ML_task)
 
+     # Nequip/Allegro
+    elif ML_model_option_lower in NequIP:
+
+        try:
+            from nequip.integrations.ase import NequIPCalculator  
+        except:
+            initialise_error('NequIP module cannot be found, please install.')
+        try:
+            from ase import Atoms
+        except:
+            initialise_error('ASE module cannot be found, please install.')
+        
+        ML_model = Get_ASE_Calculator(ML_model_option_lower,device=device)
 # will need to rethink this if needed!!
     # elif ML_model_option_lower == 'chgnet':
 
@@ -149,11 +162,12 @@ def initialise_model(ML_model_option,ML_task=None):
 
 class predict_from_cell:
 
-    def __init__(self,seed,model_name):
+    def __init__(self,seed,model_name,device):
 
         # Sort out inputs
         self.seed = seed
         self.model_name = model_name
+        self.device       = device
         # Variables used on cell reading
         self.cell          = None
         self.num_ions      = None
@@ -190,13 +204,13 @@ class predict_from_cell:
 
     def predict_energy_stress_forces(self):
         '''
-        Predict the energy, stress and forces here using MACE and the medium model on cpu.
-        This involves initilaising an ASE predictor (i.e. the MACE model) and calling the ASE calcualtors for
+        Predict the energy, stress and forces using model.
+        This involves initilaising an ASE predictor and calling the ASE calcualtors for
         energy, stress and forces (converting from the default output units to atomic units).
         '''
 
         # Initialise the model based ont he `medium' pre trained MACE model running on CPU to 64 bit precision
-        self.model = initialise_model(self.model_name)
+        self.model = initialise_model(self.model_name,self.device)
 
         # Use MACE model to predict the energies, forces and stresses on the final structure
         self.cell.calc=self.model
@@ -227,20 +241,31 @@ class predict_from_cell:
 
 if __name__ == '__main__':
 
-    # Sort out the single input value, don't bother with argparse as it seems a bit of an overkill for this...
-    if len(sys.argv) != 3:
-        print("Usage: python script.py <modelname> <cell_ceed>")
-        sys.exit(1)
-    model_name = sys.argv[1]
-    cell_seed = sys.argv[2]
+    import argparse
+    parser = argparse.ArgumentParser(
+        description='Create an ML prediction server for use with CASTEP file PP method')
+
+    parser.add_argument('model_name',help='Name of Model to use.')
+    parser.add_argument('seed',help='seed to use for filenames, this is auto generated as the last positional argument by CASTEP')
+    parser.add_argument('-d','--device',default='cpu',help='The device to use for inference currently cpu or cuda')
+
+    args = parser.parse_args()
+
+    devices=['cpu','cuda']
+    if args.device not in devices:
+        parser.error('device must be cpu or cuda')
+    
+    model_name = args.model_name
+    device = args.device
+    cell_seed = args.seed
 
     # Initialise the prediction class, this reads the cell file on initialisation
-    C = predict_from_cell(cell_seed,model_name)
+    C = predict_from_cell(cell_seed,model_name,device)
 
     # Read in the cell file
     C.read_cell_file()
 
-    # Run the (MACE) prediction
+    # Run the prediction
     C.predict_energy_stress_forces()
 
     # Write the output, in geom format, to <seed>.EFS

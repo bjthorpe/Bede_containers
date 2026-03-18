@@ -1,5 +1,34 @@
 import sys
 from pathlib import Path
+import subprocess
+import os
+from utility.io import write_log
+
+def get_toolkit_home():
+    toolkit_home = os.environ.get('ML_TOOLKIT_HOME', "")
+
+    if toolkit_home=='':
+        print(f'Could not find ML_Toolkit_home please ensure you have run install_ml-toolkit')
+        sys.exit(1)
+    
+    return toolkit_home
+
+def compile_nequip_model(compiled_model,checkpoint_file,device):
+    ''' 
+    Run command to compile nequip model if needed
+    This should only need to be done the first time 
+    the model runs.
+    '''
+    compile_command = f"nequip-compile {checkpoint_file} {compiled_model} --device {device} --mode aotinductor --target ase"
+    proc = subprocess.run(compile_command, shell=True)
+
+    try:
+        proc.check_returncode()
+    except subprocess.CalledProcessError as e:
+        print(
+            f"An error occurred {e.stderr}:"
+        )
+        sys.exit(1)
 
 def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     """
@@ -47,11 +76,11 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     MatterSim = {"mattersim": f"MatterSim-v1.0.0-5M.pth"}
 
     NequIP = {
-        'nequip-oam-xl':'NequIP-OAM-XL-0.1.nequip.zip',
-        'allegro-oam-l':'Allegro-OAM-L-0.1.nequip.zip',
-        'nequip-oam-l':'NequIP-OAM-L-0.1.nequip.zip',
-        'allegro-mp-l':'Allegro-MP-L-0.1.nequip.zip',
-        'nequip-mp-l':'NequIP-MP-L-0.1.nequip.zip',
+        'nequip-oam-xl':f'{models_dir}/Nequip/NequIP-OAM-XL-0.1.nequip.zip',
+        'allegro-oam-l':f'{models_dir}/Nequip/Allegro-OAM-L-0.1.nequip.zip',
+        'nequip-oam-l':f'{models_dir}/Nequip/NequIP-OAM-L-0.1.nequip.zip',
+        'allegro-mp-l':f'{models_dir}/Nequip/Allegro-MP-L-0.1.nequip.zip',
+        'nequip-mp-l':f'{models_dir}/Nequip/NequIP-MP-L-0.1.nequip.zip',
     }
 
     ML_model_option_lower = ML_model_option.lower()
@@ -168,41 +197,32 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     #
     #       Params:
     #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
-    #           "checkpoint_file" - Path to either a checkpoint file (.ckpt) 
-    #                               from training or a packaged model file 
-    #                               (.nequip.zip).
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     #           Note about "checkpoint_file":
     #
     #           Packaged model files (in .nequip.zip format ) for each supported 
-    #           model can be found in the models/NequIP directory. This directory
-    #           is automatically copied into the container at build time as 
-    #           /models/NequIP. 
-    # 
-    #           These will be used by default if the checkpoint_file argument 
-    #           is not supplied. To use a custom path you need to ensure that 
-    #           it is accessible to the container. This can be achieved by 
-    #           either copying the files at build time using the container 
-    #           definition file or setting shared_directories in the .yaml 
-    #           file for the model parameters (see the docs for more details).
+    #           model can be found in the ML_Toolkit/Models/NequIP directory. 
+    #           This directory is automatically copied into the container at 
+    #           build time as /models/NequIP. 
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     elif ML_model_option_lower in NequIP:
         from nequip.ase import NequIPCalculator
 
-        if "checkpoint_file" not in kwargs:
-            checkpoint_file = NequIP[ML_model_option_lower]
-        else:
-            checkpoint_file = f"{models_dir}/NequIP/{kwargs['checkpoint_file']}"
+        checkpoint_file = NequIP[ML_model_option_lower]
+        toolkit_home=get_toolkit_home()
+        compile_path=f"{toolkit_home}/Models/Nequip/{ML_model_option_lower}.nequip.pt2"
 
-        compile_path=f"{models_dir}/NequIP/{ML_model_option_lower}.nequip.pt2"
 # Call bash script to Compile the model if needed
-        if not Path(checkpoint_file).exists():
-            compile_nequip_model()
+        if not Path(compile_path).exists():
+            print(f"First time run so compiling model {ML_model_option}")
+            print(f"This will take longer than usual")
+            compile_nequip_model(compile_path,checkpoint_file,kwargs["device"])
         
         ASE_Calculator = NequIPCalculator.from_compiled_model(
             compile_path=compile_path,
             device=kwargs['device'])
     else:
-        initialise_error(f"Unknown module {ML_model_option}")
+        print(f"Unknown module {ML_model_option}")
+        sys.exit(1)
     return ASE_Calculator

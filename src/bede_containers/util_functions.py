@@ -102,7 +102,6 @@ def which(program:str):
     return None
 
 def get_toolkit_home():
-    import yaml
     toolkit_home = os.environ.get('ML_TOOLKIT_HOME', "")
 
     if toolkit_home=='':

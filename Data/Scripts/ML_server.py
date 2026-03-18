@@ -5,8 +5,18 @@ import utility.io as io
 from twisted.internet import reactor
 from server.twisted_server import ML_Factory
 from Matbench_Models import Get_ASE_Calculator
+from pathlib import Path
 
-def initialise_model(self,ML_model_option,ML_port,ML_task=None):
+def get_toolkit_home():
+    toolkit_home = os.environ.get('ML_TOOLKIT_HOME', "")
+
+    if toolkit_home=='':
+        cmd_output(f'Could not find ML_Toolkit_home please ensure you have run install_ml-toolkit')
+        sys.exit(1)
+    
+    return toolkit_home
+
+def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cpu'):
     '''
     Initialise the ML model, only need to do this once
     '''
@@ -68,7 +78,7 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None):
 
         self.Atoms = Atoms
         self.toolkit = 'ASE'
-        self.model = Get_ASE_Calculator(ML_model_option_lower,device='cpu')
+        self.model = Get_ASE_Calculator(ML_model_option_lower,device=device)
 
 
     elif ML_model_option_lower in Mace:
@@ -92,7 +102,7 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None):
         self.toolkit = 'ASE'
         self.model = Get_ASE_Calculator(ML_model_option_lower,model_paths=MACE_model_path,
                                     default_dtype='float64',
-                                    device='cpu')
+                                    device=device)
     # Meta(facebook) OMAT24
     elif ML_model_option_lower in Meta_OMat24:
 
@@ -129,7 +139,23 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None):
         
         self.Atoms = Atoms
         self.toolkit = 'ASE'
-        self.model = Get_ASE_Calculator(ML_model_option_lower,device='cpu',task=ML_task)
+        self.model = Get_ASE_Calculator(ML_model_option_lower,device=device,task=ML_task)
+
+     # Nequip/Allegro
+    elif ML_model_option_lower in NequIP:
+
+        try:
+            from nequip.integrations.ase import NequIPCalculator  
+        except:
+            initialise_error('NequIP module cannot be found, please install.',ML_port)
+        try:
+            from ase import Atoms
+        except:
+            initialise_error('ASE module cannot be found, please install.',ML_port)
+        
+        self.Atoms = Atoms
+        self.toolkit = 'ASE'
+        self.model = Get_ASE_Calculator(ML_model_option_lower,device=device)
 
     elif ML_model_option_lower == 'chgnet':
 
@@ -145,7 +171,7 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None):
 
         self.Structure = Structure
         self.toolkit = 'PyMatGen'
-        self.model = CHGNet.load(use_device='cpu')
+        self.model = CHGNet.load(use_device=device)
 
     else:
         initialise_error(f'Unrecognised ML_model_option {ML_model_option}',ML_port)
@@ -167,6 +193,7 @@ if __name__ == '__main__':
     reactor.listenTCP(args.port,ML_Factory(
         port=args.port,
         task=args.task,
+        device=args.device,
         timeout_cutoff=args.timeout_cutoff,
         logging_level=args.logging_level,
         ML_model_option=args.ML_model_option,
