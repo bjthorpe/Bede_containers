@@ -57,13 +57,14 @@ cover/
 .python-version
 uv.lock
 
-Images/*/*.sif
-Images/*.sif
+
 Definitions/*.def
 !Definitions/cowsay.def
 
 #logfiles
-logs/*
-Models/*
+Data/logs/*
+Data/Models/*/*
+Data/Images/*/*.sif
+Data/Images/*.sif
 .vscode
 Container_Configs/API_Keys/HF_AUTH.key

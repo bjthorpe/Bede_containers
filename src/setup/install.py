@@ -115,7 +115,8 @@ def update_rc_file(rc_file, block):
 
     rc_file.write_text(new_content)
     return
-def get_user_input(msg:str,dir:str):
+
+def yes_no(msg:str,dir:str):
     while True:
         user_input = input(f'{msg} yes/no: ')
 
@@ -127,6 +128,27 @@ def get_user_input(msg:str,dir:str):
             return False
         else:
             print('Type yes or no')
+
+def get_path_from_input(msg:str):
+
+    while True:
+        user_input = input(f'{msg}')
+        
+        if user_input=='':
+            toolkit_home = f"{os.getcwd()}/Data"
+            git_dir = f"{os.getcwd()}/.git"
+        else:
+            toolkit_home = f"{user_input}/Data"
+            git_dir = f"{user_input}/.git"
+        
+        if Path(toolkit_home).exists() and Path(git_dir).exists():
+            cmd_output(f"using directory {toolkit_home} for ML_TOOLKIT_HOME")
+            return toolkit_home
+        else:
+            cmd_output(f"cannot find {user_input} for ML_TOOLKIT_HOME")
+            cmd_output(f"this must be a git repo containing the Data directory")
+            print('Error: please try again')
+            continue
 
 def create_toolkit_home():
     '''
@@ -149,7 +171,9 @@ def create_toolkit_home():
     help_msg = f'Installation directory for ML_Toolkit, if not provided this defaults to {Path.home()}/ML_Toolkit'
     parser.add_argument('-p','--toolkit_home',nargs='?',default=f'{Path.home()}/ML_Toolkit',help=help_msg)
     parser.add_argument('-f', '--overwrite', action='store_true', help="force overwrite if directory exists")
+    parser.add_argument('-d', '--dev', action='store_true', help="use git repo as ML_Toolkit_home")
     parser.add_argument('-u', '--update', action='store_true', help="update existing installation")
+    
     # check if using conda or venv
     conda_prefix = os.environ.get("CONDA_PREFIX")
     if conda_prefix:
@@ -161,7 +185,14 @@ def create_toolkit_home():
     args = parser.parse_args()
     toolkit_home = args.toolkit_home
     dirs =['Container_Configs','Definitions','Scripts','API_Keys']
-    if not args.update:
+    if args.dev:
+        msg = f"Dev mode enabled:\n Please enter the Path to the git repo\n or press enter to use the current working directory"
+        toolkit_home = get_path_from_input(msg)
+        # create logs and images dirs
+        Path(f'{toolkit_home}/logs').mkdir(parents=True, exist_ok=True)
+        Path(f'{toolkit_home}/Images').mkdir(parents=True, exist_ok=True)
+        Path(f'{toolkit_home}/Models').mkdir(parents=True, exist_ok=True)
+    elif not args.update:
         if Path(toolkit_home).exists() and not args.overwrite:
             cmd_output(f'Installation path {toolkit_home} already exists',sentinel=' ')
             cmd_output('to avoid data loss please provide a different path. Or',sentinel=' ')
@@ -189,6 +220,7 @@ def create_toolkit_home():
                 cmd_output(f"An Error occurred while copying data: \n {e}",sentinel=' ')
                 sys.exit(1)
     else:
+        #update existing toolkit_home
         toolkit_home = os.environ.get("ML_TOOLKIT_HOME",'')
         if toolkit_home == '':
             cmd_output(f'Can not find existing installation of ml-toolkit to update',sentinel=' ')
@@ -199,7 +231,7 @@ def create_toolkit_home():
         for dir in dirs:
             overwrite=True
             try:
-                overwrite = get_user_input(f"Update {dir}?",dir)
+                overwrite = yes_no(f"Update {dir}?",dir)
                 if overwrite:
                     shutil.copytree(f'{venv_root}/{dir}', f'{toolkit_home}/{dir}',dirs_exist_ok=True)
             except Exception as e:

@@ -276,7 +276,8 @@ def format_command(
 
     # and bind mounts for directories if requested
     if Container.shared_directories != []:
-        dirs = []
+        # we should always at least bind toolkit home
+        dirs = [toolkit_home]
         for directory in Container.shared_directories:
             logging.info(f"Granting access to {directory} within the container")
             dirs.append(directory)
@@ -284,7 +285,7 @@ def format_command(
         flags_str = ''.join([item + ',' for item in dirs])[:-1]
         bind_opt = f" --bind {flags_str} "
     else:
-        bind_opt = "" 
+        bind_opt = f" --bind {toolkit_home} " 
     # check for encryption and add appropriate flags
     if Container.encrypted:
         if Container.encryption_key != "":
