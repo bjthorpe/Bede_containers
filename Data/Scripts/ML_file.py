@@ -9,7 +9,7 @@ from utility import castep_units
 from Matbench_Models import Get_ASE_Calculator
 from ase.io import read
 
-def initialise_model(ML_model_option,ML_task=None,device='cpu'):
+def initialise_model(ML_model_option,ML_task=None,device='cuda'):
     '''
     Initialise the ML model, only need to do this once
     '''
@@ -68,7 +68,7 @@ def initialise_model(ML_model_option,ML_task=None,device='cpu'):
         except:
             initialise_error('ASE module cannot be found, please install.')
 
-        ML_model = Get_ASE_Calculator(ML_model_option_lower,device=device)
+        ML_model = Get_ASE_Calculator(ML_model_option,device=device)
 
 
     elif ML_model_option_lower in Mace:
@@ -88,7 +88,7 @@ def initialise_model(ML_model_option,ML_task=None,device='cpu'):
         if not os.path.exists(MACE_model_path):
             initialise_error(f'MACE model {MACE_model_path} not found.')
 
-        ML_model = Get_ASE_Calculator(ML_model_option_lower,model_paths=MACE_model_path,
+        ML_model = Get_ASE_Calculator(ML_model_option,model_paths=MACE_model_path,
                                     default_dtype='float64',
                                     device=device)
     # Meta(facebook) OMAT24
@@ -104,7 +104,7 @@ def initialise_model(ML_model_option,ML_task=None,device='cpu'):
         except:
             initialise_error('ASE module cannot be found, please install.')
 
-        ML_model = Get_ASE_Calculator(ML_model_option_lower)
+        ML_model = Get_ASE_Calculator(ML_model_option)
 
      # Meta(facebook) UMA
     elif ML_model_option_lower in Meta_UMA:
@@ -124,7 +124,7 @@ def initialise_model(ML_model_option,ML_task=None,device='cpu'):
                              This must be one of: oc20, omat, omol ,odac, or, omc".')
         
 
-        ML_model = Get_ASE_Calculator(ML_model_option_lower,device=device,task=ML_task)
+        ML_model = Get_ASE_Calculator(ML_model_option,device=device,task=ML_task)
 
      # Nequip/Allegro
     elif ML_model_option_lower in NequIP:
@@ -138,7 +138,7 @@ def initialise_model(ML_model_option,ML_task=None,device='cpu'):
         except:
             initialise_error('ASE module cannot be found, please install.')
         
-        ML_model = Get_ASE_Calculator(ML_model_option_lower,device=device)
+        ML_model = Get_ASE_Calculator(ML_model_option,device=device)
 # will need to rethink this if needed!!
     # elif ML_model_option_lower == 'chgnet':
 
@@ -210,7 +210,7 @@ class predict_from_cell:
         '''
 
         # Initialise the model based ont he `medium' pre trained MACE model running on CPU to 64 bit precision
-        self.model = initialise_model(self.model_name,self.device)
+        self.model = initialise_model(self.model_name,device=self.device)
 
         # Use MACE model to predict the energies, forces and stresses on the final structure
         self.cell.calc=self.model

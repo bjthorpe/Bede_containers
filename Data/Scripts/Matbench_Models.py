@@ -207,16 +207,20 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     elif ML_model_option_lower in NequIP:
-        from nequip.ase import NequIPCalculator
+        from nequip.integrations.ase import NequIPCalculator
 
         checkpoint_file = NequIP[ML_model_option_lower]
         toolkit_home=get_toolkit_home()
-        compile_path=f"{toolkit_home}/Models/Nequip/{ML_model_option_lower}.nequip.pt2"
+        compile_path=f"{toolkit_home}/Models/Nequip/{kwargs['device']}/{ML_model_option}.nequip.pt2"
 
 # Call bash script to Compile the model if needed
         if not Path(compile_path).exists():
+            print(f"***************************************************")
+            print(f"{compile_path}")
             print(f"First time run so compiling model {ML_model_option}")
-            print(f"This will take longer than usual")
+            print(f"This will take a lot longer than usual")
+            print(f"***************************************************")
+            Path(f"{toolkit_home}/Models/Nequip/{kwargs['device']}").mkdir(parents=True,exist_ok=True)
             compile_nequip_model(compile_path,checkpoint_file,kwargs["device"])
         
         ASE_Calculator = NequIPCalculator.from_compiled_model(

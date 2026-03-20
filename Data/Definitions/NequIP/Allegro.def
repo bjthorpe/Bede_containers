@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: python:3.11
+From: nvidia/cuda:12.8.1-devel-ubuntu24.04
 %files
     {{ toolkit_home }}/Scripts/HAProxy.cfg cfg/
     {{ toolkit_home }}/Scripts/ML_server.py prediction/
@@ -13,12 +13,23 @@ From: python:3.11
     export NEQUIP_CACHE_DIR=/Models/Nequip
     export CUDA_HOME=/usr/local/cuda
     apt update
-    apt install -y build-essential git g++ haproxy
+    apt install -y build-essential git g++ haproxy python3-pip python3.12-venv
     python3 -m venv /envs/ML_env
     source /envs/ML_env/bin/activate
     pip install --upgrade pip
-    pip install torch --index-url https://download.pytorch.org/whl/cu126
-    pip install nequip-allegro twisted 
+    pip install torch==2.6 --index-url https://download.pytorch.org/whl/cu128
+    pip install nequip-allegro twisted numpy
+
+    echo "****************************************************"
+    echo "                  Build complete:"
+    echo " Note: Allegro Models need to be compiled before use."
+    echo " This should happen automatically on the first "
+    echo " run of the Model. However, this will add several "
+    echo " minutes to the first run. "
+    echo ""
+    echo " To avoid this you can use: "
+    echo " ml-toolkit run {{ model_name }} {{ toolkit_home }}/Scripts/Nequip_compile.sh -M {{ model_name }} -d cuda"
+    echo "****************************************************"
 
 %startscript
     # start with sensible defaults
@@ -105,3 +116,4 @@ From: python:3.11
     export CUDA_HOME=/usr/local/cuda
     export NEQUIP_CACHE_DIR=/Models/Nequip
     export ML_TOOLKIT_HOME={{ toolkit_home }}
+    export PATH="/envs/ML_env/bin:$PATH"

@@ -11,20 +11,19 @@ NequIP-OAM-XL:
   description: 'NequIP GNN foundational potential for materials "extra-large" model, optimised for accuracy.' 
   group: NequIP
   container_definition: Definitions/NequIP/NequIP.def
-  build_options: {'model_name':'NequIP-OAM-XL','device':'cuda'}
+  build_options: {'model_name':'NequIP-OAM-XL'}
 
 Allegro-OAM-L:
   description: 'Allegro GNN foundational potential for materials.'
   group: NequIP
   container_definition: Definitions/NequIP/Allegro.def
-  build_options: {'model_name':'Allegro-OAM-L','device':'cuda'}
+  build_options: {'model_name':'Allegro-OAM-L'}
 
 NequIP-OAM-L:
   description: 'NequIP GNN foundational potential for materials "large" model, optimised for speed and accuracy.' 
   group: NequIP
   container_definition: Definitions/NequIP/NequIP.def
-  dont_mount: ['home','cwd']
-  build_options: {'model_name':'NequIP-OAM-L','device':'cuda'}
+  build_options: {'model_name':'NequIP-OAM-L'}
 
 # These models were only trained on the MPTrj dataset making them matbench-discovery 
 # 'compliant' though notably less accurate than the other models.
@@ -32,10 +31,10 @@ Allegro-MP-L:
   description: '"Matbench-compliant" Allegro potential for materials "large" model, optimised for speed and accuracy.' 
   group: NequIP
   container_definition: Definitions/NequIP/Allegro.def
-  build_options: {'model_name':'Allegro-MP-L','device':'cuda'}
+  build_options: {'model_name':'Allegro-MP-L'}
 
 NequIP-MP-L:
   description: '"Matbench-compliant" NequIP GNN potential for materials "large" model, optimised for speed and accuracy.'
   group: NequIP
   container_definition: Definitions/NequIP/NequIP.def
-  build_options: {'model_name':'NequIP-MP-L','device':'cuda'}
+  build_options: {'model_name':'NequIP-MP-L'}

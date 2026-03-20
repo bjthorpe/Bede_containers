@@ -100,7 +100,7 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cpu'):
 
         self.Atoms = Atoms
         self.toolkit = 'ASE'
-        self.model = Get_ASE_Calculator(ML_model_option_lower,model_paths=MACE_model_path,
+        self.model = Get_ASE_Calculator(ML_model_option,model_paths=MACE_model_path,
                                     default_dtype='float64',
                                     device=device)
     # Meta(facebook) OMAT24
@@ -118,7 +118,7 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cpu'):
 
         self.Atoms = Atoms
         self.toolkit = 'ASE'
-        self.model = Get_ASE_Calculator(ML_model_option_lower)
+        self.model = Get_ASE_Calculator(ML_model_option)
 
      # Meta(facebook) UMA
     elif ML_model_option_lower in Meta_UMA:
@@ -139,7 +139,7 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cpu'):
         
         self.Atoms = Atoms
         self.toolkit = 'ASE'
-        self.model = Get_ASE_Calculator(ML_model_option_lower,device=device,task=ML_task)
+        self.model = Get_ASE_Calculator(ML_model_option,device=device,task=ML_task)
 
      # Nequip/Allegro
     elif ML_model_option_lower in NequIP:
@@ -155,7 +155,7 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cpu'):
         
         self.Atoms = Atoms
         self.toolkit = 'ASE'
-        self.model = Get_ASE_Calculator(ML_model_option_lower,device=device)
+        self.model = Get_ASE_Calculator(ML_model_option,device=device)
 
     elif ML_model_option_lower == 'chgnet':
 
