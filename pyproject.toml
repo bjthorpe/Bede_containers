@@ -29,6 +29,5 @@ requires = ["uv_build>=0.8.23,<0.9.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-data = { data = "Data" }
-source-exclude = ["Data/Models","Data/logs","Data/Images"]
+source-include = ["Data/API_Keys/*","Data/Container_Configs/*","Data/Definitions/*/*","Data/Scripts/*/*"]
 module-name = ["bede_containers", "setup"]
