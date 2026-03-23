@@ -180,11 +180,11 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cpu'):
 if __name__ == '__main__':
     
     args = io.parse_arguments()
-
+    toolkit_home = get_toolkit_home()
     # Set default logging
     logging.getLogger(__name__)
     logging.basicConfig(
-        filename='logs/python_server.log',encoding='utf-8',filemode='a',
+        filename=f'{toolkit_home}/logs/python_server.log',encoding='utf-8',filemode='a',
         level=getattr(logging,args.logging_level.upper(),None),
         format='%(asctime)s | %(levelname)8s : %(message)s',
     )
