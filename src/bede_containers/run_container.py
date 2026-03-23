@@ -227,6 +227,8 @@ def format_command(
     model_name: str,
     Container: ContainerConfig,
     cmd_list: List[str] = ["hostname"],
+    sandbox: bool = False,
+    shell: bool = False
 ):
     """
     Function to create appropriate Apptainer command based on the
@@ -251,7 +253,7 @@ def format_command(
         logging.warning(f"Device {Container.device} in config file for {model_name} not recognised.")
         logging.warning(f"Defaulting to cpu for calculations.")
         gpu_flag = ""
-        
+   
     # turn off automatic mounts if requested
     if Container.dont_mount != []:
         # remove auto-mount for users home directory if requested
@@ -296,19 +298,40 @@ def format_command(
         enc_flag = ""
 
     if operation == "run":
+        if (not shell and cmd_list==[]):
+            print("error: the following arguments are required: cmd")
+            sys.exit(12)
         cmd = " ".join(cmd_list)
-        msg = "Running"
+        if sandbox:
+            sand_flag = " --writable "
+        else:    
+            sand_flag = ""
+
         image_exists(image)
-        apptainer_command = f"apptainer exec{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
+        # shell and exec share the same cmd options so I just combined the two
+        if shell:
+            msg = "Running in interactive mode"
+            apptainer_cmd = "shell"
+        else:
+            msg = "Running"
+            apptainer_cmd = "exec"
+
+        apptainer_command = f"apptainer {apptainer_cmd}{enc_flag}{sand_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
 
     elif operation == "build" or operation == "load":
-        msg = "Building"
+        if sandbox:
+            sand_flag = " --sandbox "
+            msg = "Building Writable container"
+        else:    
+            sand_flag = ""
+            msg = "Building"
+
         # Make parent directory(s) of image file if it does not exist
         Path(Container.image_file).parent.mkdir(parents=True, exist_ok=True)
         build_options_str = create_build_options(Container.build_options)
 
         apptainer_command = (
-            f"apptainer build{build_options_str}{enc_flag}{gpu_flag}{image} {definition}"
+            f"apptainer build{build_options_str}{sand_flag}{enc_flag}{gpu_flag}{image} {definition}"
         )
 
     elif operation == "start":
@@ -354,7 +377,9 @@ def parse_cmd_arguments():
 
     run_parser.add_argument("model_name", type=str, help="Name of Model to use")
 
-    run_parser.add_argument("cmd", type=str, nargs=1, help="Command(s) to run")
+    run_parser.add_argument("cmd", type=str, nargs='*', help="Command(s) to run")
+    run_parser.add_argument("--writable", action="store_true", help="Run container as an editable sandbox, useful for dev/debugging. Needs to be built with --writable first.")
+    run_parser.add_argument("--interactive", action="store_true", help="run in interactive mode, ignores extra commands")
 
     # sub-parser for the build operation
     build_parser = subparsers.add_parser(
@@ -362,7 +387,8 @@ def parse_cmd_arguments():
     )
 
     build_parser.add_argument("model_name", type=str, help="Name of Model to use")
-
+    build_parser.add_argument("--writable", action="store_true", help="Build container as an editable sandbox, useful for dev/debugging. Run with --writable to freely edit the container.")   
+    
     # sub-parser for the load operation
     load_parser = subparsers.add_parser(
         "load", help="Build the Container, exactly equivalent to build"
@@ -470,6 +496,16 @@ def main() -> int:
         # just list all detected containers then exit
         list_containers(Containers, args.group)
         return 0
+    # set flags for writable and interactive containers
+    if not hasattr(args,'writable'):
+        args.writable=False
+
+    writable=args.writable
+
+    if not hasattr(args,'interactive'):
+        args.interactive=False
+  
+    shell=args.interactive
 
     model_name = args.model_name
 
@@ -485,10 +521,15 @@ def main() -> int:
         msg2 = "available on the system path. Please check Your installation."
         raise ValueError(msg+msg2)
     
+# we don't need to pass in any cmd arguments if using interactive shell
+    if shell:
+        args.cmd=[]
+
     if not hasattr(args,'cmd'):
         args.cmd=[]
+
     apptainer_command = format_command(
-        args.operation, model_name, Containers[model_name], args.cmd
+        args.operation, model_name, Containers[model_name], args.cmd,writable,shell
     )
     if args.debug:
         print("Debug enabled")

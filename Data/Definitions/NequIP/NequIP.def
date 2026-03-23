@@ -19,7 +19,9 @@ From: nvidia/cuda:12.8.1-devel-ubuntu24.04
     pip install --upgrade pip
     pip install torch==2.6 --extra-index-url https://download.pytorch.org/whl/cu128 
     pip install twisted nequip numpy
-
+# make blank dir in container for mounting toolkit_home to for use with --sandbox
+    mkdir -p {{ toolkit_home }}
+    
     echo "****************************************************"
     echo "                  Build complete:"
     echo " Note: Nequip Models need to be compiled before use."

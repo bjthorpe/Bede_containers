@@ -16,7 +16,8 @@ From: python:3.11
     python3 -m venv /envs/ML_env
     source /envs/ML_env/bin/activate
     pip install Twisted numpy attrs chgnet
-
+# make blank dir in container for mounting toolkit_home to for use with --sandbox
+    mkdir -p {{ toolkit_home }}
 %startscript
 
     # start with sensible defaults

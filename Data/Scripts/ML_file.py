@@ -140,19 +140,19 @@ def initialise_model(ML_model_option,ML_task=None,device='cuda'):
         
         ML_model = Get_ASE_Calculator(ML_model_option,device=device)
 # will need to rethink this if needed!!
-    # elif ML_model_option_lower == 'chgnet':
+    elif ML_model_option_lower == 'chgnet':
+        raise NotImplementedError('unfortunately, CHGNet currently only has a server implementation')
+        # try:
+        #     from chgnet.model import CHGNet
+        # except:
+        #     initialise_error('CHGNet module cannot be found, please install.')
 
-    #     try:
-    #         from chgnet.model import CHGNet
-    #     except:
-    #         initialise_error('CHGNet module cannot be found, please install.')
+        # try:
+        #     from pymatgen.core import Structure
+        # except:
+        #     initialise_error('Pymatgen module cannot be found, please install.')
 
-    #     try:
-    #         from pymatgen.core import Structure
-    #     except:
-    #         initialise_error('Pymatgen module cannot be found, please install.')
-
-    #     ML_model = CHGNet.load(use_device='cpu')
+        # ML_model = CHGNet.load(use_device='cpu')
 
     else:
         initialise_error(f'Unrecognised ML_model_option {ML_model_option}')

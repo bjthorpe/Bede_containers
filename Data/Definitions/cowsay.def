@@ -6,7 +6,9 @@ From: ubuntu:24.04
     apt-get install -y locales && \
     locale-gen en_US.UTF-8 && \
     apt -y install cowsay fortune-mod
-
+# make blank dir in container for mounting toolkit_home to for use with --sandbox
+    mkdir -p {{ toolkit_home }}
+    
     # we don't really need anything from the host system 
     # so this is just a bodge to get rid of the error about 
     # not using the toolkit_home build option  

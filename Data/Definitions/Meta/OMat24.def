@@ -31,6 +31,8 @@ From: python:3.11
     hf download --token {{ HF_AUTH }} facebook/OMAT24 {{ checkpoint_file }}
 # find and move symlink to model to make it easier to work with
     find /Models -iname {{ checkpoint_file }} -exec bash -c 'cp $0 /Models' {} \;
+# make blank dir in container for mounting toolkit_home to for use with --sandbox
+    mkdir -p {{ toolkit_home }}
 ##########################################################################
 
 %startscript
