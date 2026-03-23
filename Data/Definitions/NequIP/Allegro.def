@@ -8,7 +8,8 @@ From: nvidia/cuda:12.8.1-devel-ubuntu24.04
     {{ toolkit_home }}/Scripts/server prediction/server
     {{ toolkit_home }}/Scripts/Nequip_compile.sh /Models/compile/
     {{ toolkit_home }}/Models/Nequip  /Models/Nequip
-
+    {{ toolkit_home }}/Definitions/NequIP/req_Allegro.txt requirements.txt
+      
 %post -c /bin/bash
     export NEQUIP_CACHE_DIR=/Models/Nequip
     export CUDA_HOME=/usr/local/cuda
@@ -18,7 +19,9 @@ From: nvidia/cuda:12.8.1-devel-ubuntu24.04
     source /envs/ML_env/bin/activate
     pip install --upgrade pip
     pip install torch==2.6 --index-url https://download.pytorch.org/whl/cu128
-    pip install nequip-allegro twisted numpy
+    #pip install nequip-allegro twisted numpy
+    pip install -r requirements.txt
+    
 # make blank dir in container for mounting toolkit_home to for use with --sandbox
     mkdir -p {{ toolkit_home }}
     
