@@ -7,8 +7,10 @@ From: python:3.11
     {{ toolkit_home }}/Scripts/Matbench_Models.py prediction/
     {{ toolkit_home }}/Scripts/utility prediction/utility
     {{ toolkit_home }}/Scripts/server prediction/server
+    {{ toolkit_home }}/Definitions/Meta/req_uma.txt requirements.txt
 
 %post -c /bin/bash
+    cd /
     apt update &&
     DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC \
     apt install -y curl git g++ haproxy
@@ -20,14 +22,21 @@ From: python:3.11
 # Install final dependencies
     python3 -m venv /envs/UMA && \
     source /envs/UMA/bin/activate && \
-    pip install fairchem-core==2.13.0 twisted
+    pip install -r requirements.txt
 # login to huggingface to shut it up
     hf auth login --token {{ HF_AUTH }}
 #  download models with the provided API key.
-    echo "Downloading model file {{ checkpoint_file }}"    
-    hf download --token {{ HF_AUTH }} facebook/UMA {{ checkpoint_file }} && \
-    hf download --token {{ HF_AUTH }} facebook/UMA references/form_elem_refs.yaml && \
-    hf download --token {{ HF_AUTH }} facebook/UMA references/iso_atom_elem_refs.yaml
+# fixing commit hash to last version with model uma-s-1:
+    GITHASH=38529caa2c51a9a8a0d71f0b56b79ac33bc9eceb
+# use this version to include uma_s1p2
+#GITHASH=973897224a01ccc7f1257e71e0587ee0d58d6af6
+    echo "Downloading model file {{ checkpoint_file }}" 
+    hf download --revision ${GITHASH} --token {{ HF_AUTH }} facebook/UMA {{ checkpoint_file }} && \
+    hf download --revision ${GITHASH} --token {{ HF_AUTH }} facebook/UMA references/form_elem_refs.yaml && \
+    hf download --revision ${GITHASH} --token {{ HF_AUTH }} facebook/UMA references/iso_atom_elem_refs.yaml
+# make blank dir in container for mounting toolkit_home to for use with --sandbox
+    mkdir -p {{ toolkit_home }}
+
 %startscript 
     
     # start with sensible defaults
