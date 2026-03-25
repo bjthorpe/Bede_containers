@@ -16,7 +16,7 @@ def get_toolkit_home():
     
     return toolkit_home
 
-def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cpu'):
+def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cuda'):
     '''
     Initialise the ML model, only need to do this once
     '''

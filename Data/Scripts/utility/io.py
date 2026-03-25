@@ -28,7 +28,7 @@ def parse_arguments():
     parser.add_argument('-t','--task',type=str,default='None',
                         help='The task to use for Meta UMA models, e.g. omol, omat, omc etc.'
                         ' This is required by Meta UMA Models but is ignored by all other models')
-    parser.add_argument('-d','--device',type=str,default='cpu',
+    parser.add_argument('-d','--device',type=str,default='cuda',
                         help='The device to use for inference currently cpu or cuda')
     args = parser.parse_args()
 
