@@ -102,7 +102,8 @@ def test_unknown_operation():
 # check for that we raise an error if operation is unknown
     containers = check_container_config(["tests/test_configs/valid.yaml"])
     with pytest.raises(CMD_FormatError):
-        format_command("unknown","test",containers['Example_Model1'])
+        cmd = {}
+        format_command("unknown","test",containers['Example_Model1'],cmd)
 
 def test_config_file_flag(monkeypatch,build_test_container_2):
     '''

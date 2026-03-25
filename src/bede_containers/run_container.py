@@ -317,7 +317,7 @@ def format_command(
             print("error: the following arguments are required: cmd")
             sys.exit(12)
         cmd = " ".join(CMD_Options['cmd'])
-        if CMD_Options['interactive']:
+        if CMD_Options['writable']:
             sand_flag = " --writable "
         else:    
             sand_flag = ""
@@ -334,7 +334,7 @@ def format_command(
         apptainer_command = f"apptainer {apptainer_cmd}{enc_flag}{sand_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
 
     elif operation == "build" or operation == "load":
-        if CMD_Options['interactive']:
+        if CMD_Options['writable']:
             sand_flag = " --sandbox "
             msg = "Building Writable container"
         else:    
@@ -351,7 +351,6 @@ def format_command(
 
     elif operation == "start":
         msg = "Starting"
-        cmd = " ".join(CMD_Options['cmd'])
         image_exists(image)
         # containers for use with CASTEP have a slightly different startup command.
         if Container.CASTEP:
@@ -361,7 +360,7 @@ def format_command(
             
             cmd = f"-p {CMD_Options['port']} -t {CMD_Options['timeout']} -N {CMD_Options['num_servers']}"
 
-        apptainer_command = f"apptainer instance start{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name} {cmd}"
+        apptainer_command = f"apptainer instance start{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name}"
 
     elif operation == "stop":
         msg = "Stopping"
@@ -418,6 +417,7 @@ def parse_cmd_arguments():
     )
 
     load_parser.add_argument("model_name", type=str, help="Name of Model to use")
+    load_parser.add_argument("--writable", action="store_true", help="Build container as an editable sandbox, useful for dev/debugging. Run with --writable to freely edit the container.")   
 
     # sub-parser for the list operation
     list_parser = subparsers.add_parser("list", help="List available containers")
