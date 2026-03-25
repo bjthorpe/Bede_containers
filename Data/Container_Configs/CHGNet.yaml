@@ -5,3 +5,4 @@ CHGNet:
   group: CHGNet
   image_file: Images/CHGNet/CHGNet.sif
   container_definition: Definitions/CHGNet/CHGNet.def
+  CASTEP: True

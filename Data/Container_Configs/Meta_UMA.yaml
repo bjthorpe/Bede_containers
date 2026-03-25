@@ -11,6 +11,7 @@ uma-s-1:
   image_file: Images/Meta/uma-s-1.sif
   container_definition: Definitions/Meta/UMA.def
   build_options: {'HF_AUTH':True,'checkpoint_file':'checkpoints/uma-s-1.pt', 'model_name':'uma-s-1'}
+  CASTEP: True
 
 uma-s-1p1:
   description: 'Version 1.1 of UMA model, trained using 150M parameters with 6M active.'
@@ -18,6 +19,7 @@ uma-s-1p1:
   image_file: Images/Meta/uma-s-1p1.sif
   container_definition: Definitions/Meta/UMA.def
   build_options: {'HF_AUTH':True,'checkpoint_file':'checkpoints/uma-s-1p1.pt', 'model_name':'uma-s-1p1'}
+  CASTEP: True
 
 uma-m-1p1:
   description: 'Version 1.1 of UMA model, trained using 1.4B parameters with 50M active.'
@@ -25,6 +27,7 @@ uma-m-1p1:
   image_file: Images/Meta/uma-m-1p1.sif
   container_definition: Definitions/Meta/UMA.def
   build_options: {'HF_AUTH':True,'checkpoint_file':'checkpoints/uma-m-1p1.pt', 'model_name':'uma-m-1p1'}
+  CASTEP: True
 
 # single container with all models
 uma:
@@ -33,6 +36,7 @@ uma:
   image_file: Images/Meta/UMA.sif
   container_definition: Definitions/Meta/UMA.def
   build_options: {'HF_AUTH':True,'checkpoint_file':'', 'model_name':'uma_all'}
+  CASTEP: True
 
 # Not yet released (as of Jan 2026)
 # uma-l-1.1:
@@ -41,3 +45,4 @@ uma:
 #   image_file: Images/Meta/UMA.sif
 #   container_definition: Definitions/Meta/UMA.def
 #   build_options: {'HF_AUTH':True,'checkpoint_file':'uma-l-1p1.pt'}
+#   CASTEP: True

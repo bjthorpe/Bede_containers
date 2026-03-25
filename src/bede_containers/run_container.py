@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 import subprocess, sys, yaml
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import List
 from dacite import from_dict
 from .check_yaml import DuplicateKeyDetector, DuplicateKeyError
 from .check_yaml import is_valid_name
@@ -11,6 +11,22 @@ from .util_functions import create_build_options, cmd_output, which, get_toolkit
 from .version import __version__
 import logging
 import sys
+import socket
+import time
+
+def wait_for_port(host, port, retries=5, delay=10):
+    for attempt in range(1, retries + 1):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(1)
+            if sock.connect_ex((host, port)) == 0:
+                print(f"Python Server is ready on {port}")
+                return True
+
+        print(f"Attempt {attempt} of {retries}: Python Server not ready")
+        print(f"waiting for {delay} seconds before retry")
+        time.sleep(delay)
+
+    return False
 
 toolkit_home = get_toolkit_home()
 
@@ -33,6 +49,7 @@ class ContainerConfig:
     encrypted: bool = field(default=False)
     device: str = field(default='cuda')
     build_options: dict = field(default_factory=dict)
+    CASTEP: bool = field(default=False)
 
 class CMD_FormatError(Exception):
     """
@@ -223,12 +240,10 @@ def image_exists(image_file: str):
 
 
 def format_command(
-    operation: str,
+    operation:str,
     model_name: str,
     Container: ContainerConfig,
-    cmd_list: List[str] = ["hostname"],
-    sandbox: bool = False,
-    shell: bool = False
+    CMD_Options
 ):
     """
     Function to create appropriate Apptainer command based on the
@@ -298,18 +313,18 @@ def format_command(
         enc_flag = ""
 
     if operation == "run":
-        if (not shell and cmd_list==[]):
+        if (not CMD_Options['interactive'] and CMD_Options['cmd']==[]):
             print("error: the following arguments are required: cmd")
             sys.exit(12)
-        cmd = " ".join(cmd_list)
-        if sandbox:
+        cmd = " ".join(CMD_Options['cmd'])
+        if CMD_Options['interactive']:
             sand_flag = " --writable "
         else:    
             sand_flag = ""
 
         image_exists(image)
-        # shell and exec share the same cmd options so I just combined the two
-        if shell:
+        # apptainer shell and apptainer exec share the same cmd options so I just combined the two
+        if CMD_Options['interactive']:
             msg = "Running in interactive mode"
             apptainer_cmd = "shell"
         else:
@@ -319,7 +334,7 @@ def format_command(
         apptainer_command = f"apptainer {apptainer_cmd}{enc_flag}{sand_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
 
     elif operation == "build" or operation == "load":
-        if sandbox:
+        if CMD_Options['interactive']:
             sand_flag = " --sandbox "
             msg = "Building Writable container"
         else:    
@@ -336,8 +351,16 @@ def format_command(
 
     elif operation == "start":
         msg = "Starting"
-        cmd = " ".join(cmd_list)
+        cmd = " ".join(CMD_Options['cmd'])
         image_exists(image)
+        # containers for use with CASTEP have a slightly different startup command.
+        if Container.CASTEP:
+            if CMD_Options['port']==None:
+                # use default port for castep
+                CMD_Options['port']=5000
+            
+            cmd = f"-p {CMD_Options['port']} -t {CMD_Options['timeout']} -N {CMD_Options['num_servers']}"
+
         apptainer_command = f"apptainer instance start{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name} {cmd}"
 
     elif operation == "stop":
@@ -377,7 +400,7 @@ def parse_cmd_arguments():
 
     run_parser.add_argument("model_name", type=str, help="Name of Model to use")
 
-    run_parser.add_argument("cmd", type=str, nargs='*', help="Command(s) to run")
+    run_parser.add_argument("cmd", type=str, nargs=argparse.REMAINDER, help="Command(s) to run")
     run_parser.add_argument("--writable", action="store_true", help="Run container as an editable sandbox, useful for dev/debugging. Needs to be built with --writable first.")
     run_parser.add_argument("--interactive", action="store_true", help="run in interactive mode, ignores extra commands")
 
@@ -404,12 +427,13 @@ def parse_cmd_arguments():
     )
 
     # sub-parser for the start operation
-    start_parser = subparsers.add_parser(
-        "start", help="Start Container as background process.\n\
-    Note: any additional arguments will be passed on to the container start script defined in the .def file."
-    )
+    start_parser = subparsers.add_parser("start", help="Start Container as background process.")
 
     start_parser.add_argument("model_name", type=str, help="Name of Model to use")    
+    start_parser.add_argument("-p","--port", type=int, default=None, help="Used with CASTEP, tcp network port, if provided ml-toolkit will check for network traffic on the given tcp port once the container has started. Used to verify a server has started correctly. ")    
+    start_parser.add_argument("-t","--timeout", type=int, default=10, help="time in seconds before server times out. Default: 10")
+    start_parser.add_argument("-n","--num_servers", type=int, default=1, help="Used with CASTEP, number of python servers to spawn. Default: 1")                       
+    start_parser.add_argument("-r","--num_retry", type=int, default=5, help="number of times to retry when waiting for python server. Default: 5")
     
     # sub-parser for the stop operation
     stop_parser = subparsers.add_parser(
@@ -433,17 +457,7 @@ def parse_cmd_arguments():
         version=__version__,
     )   
 
-    args, unknown_args = parser.parse_known_args()
-
-    if unknown_args !=[]:
-        if args.operation == "run":
-            args.cmd = args.cmd + unknown_args
-        elif args.operation == "start":
-            args.cmd = unknown_args
-        else:
-            print(" WARNING: The following arguments were not recognized:")
-            print(unknown_args)
-            sys.exit(-1)
+    args = parser.parse_args()
     return args
 
 
@@ -528,9 +542,10 @@ def main() -> int:
     if not hasattr(args,'cmd'):
         args.cmd=[]
 
-    apptainer_command = format_command(
-        args.operation, model_name, Containers[model_name], args.cmd,writable,shell
-    )
+    # get dict of cmd arguments
+    cmd_options= vars(args)
+    apptainer_command = format_command(args.operation, model_name, Containers[model_name],cmd_options)
+
     if args.debug:
         print("Debug enabled")
         print("current config will run the following command:")
@@ -545,6 +560,14 @@ def main() -> int:
                 f"An error occurred. Container exited with the exit code {e.returncode}:"
             )
             return e.returncode
-        return proc.returncode
+        
+        if args.operation == 'start' and hasattr(args,'port'):
+            success =  wait_for_port("127.0.0.1",args.port,args.num_retry,args.timeout)
+            if not success:
+                print(f"ERROR: Sever on port {args.port} does not appear to have started:")
+                print(f"ERROR: There is clearly an issue so stopping container")
+                proc = subprocess.run(f"apptainer instance stop {model_name}", shell=True)
+        
     # return code is used by pytest to check code ran successfully
+        return proc.returncode
     return 0
