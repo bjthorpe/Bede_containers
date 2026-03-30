@@ -169,7 +169,7 @@ def initialise_model(ML_model_option,ML_task=None,device='cuda'):
         # given it's that or not working at all I think we'll take the hit.
         original_script = torch.jit.script
 
-        def safe_script(obj, *args, **kwargs):
+        def skip_jit(obj, *args, **kwargs):
             ''' 
             function to skip torch.jit.script  
             and just use eager mode in the event 
@@ -180,13 +180,13 @@ def initialise_model(ML_model_option,ML_task=None,device='cuda'):
             except Exception:
                 return obj
 
-        torch.jit.script = safe_script
+        torch.jit.script = skip_jit
         try:
             ML_model = Get_ASE_Calculator(ML_model_option,device=device)
         finally:
             # turn torch.jit.script back on
             torch.jit.script = original_script
-                   
+
 # will need to rethink this if needed!!
     elif ML_model_option_lower == 'chgnet':
         raise NotImplementedError('unfortunately, CHGNet currently only has a server implementation')
