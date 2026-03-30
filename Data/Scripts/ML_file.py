@@ -163,8 +163,30 @@ def initialise_model(ML_model_option,ML_task=None,device='cuda'):
             from ase import Atoms
         except:
             initialise_error('ASE module cannot be found, please install.')
-        
-        ML_model = Get_ASE_Calculator(ML_model_option,device=device)        
+        import torch
+        # fix/bodge specifically for UPET to disable just in time compiling as it
+        # seemed to be causing issues. This may result in slightly lower performance but
+        # given it's that or not working at all I think we'll take the hit.
+        original_script = torch.jit.script
+
+        def safe_script(obj, *args, **kwargs):
+            ''' 
+            function to skip torch.jit.script  
+            and just use eager mode in the event 
+            of an error as jit script is optional.
+            '''
+            try:
+                return original_script(obj, *args, **kwargs)
+            except Exception:
+                return obj
+
+        torch.jit.script = safe_script
+        try:
+            ML_model = Get_ASE_Calculator(ML_model_option,device=device)
+        finally:
+            # turn torch.jit.script back on
+            torch.jit.script = original_script
+                   
 # will need to rethink this if needed!!
     elif ML_model_option_lower == 'chgnet':
         raise NotImplementedError('unfortunately, CHGNet currently only has a server implementation')
