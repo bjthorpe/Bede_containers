@@ -15,8 +15,8 @@ From: ubuntu:24.04
     python -m venv /envs/ML_env
     source /envs/ML_env/bin/activate
     pip install --upgrade pip
-    pip install upet twisted
-    #pip install -r requirements.txt
+    #pip install upet twisted
+    pip install -r requirements.txt
 # make blank dir in container for mounting toolkit_home to for use with --sandbox
     mkdir -p {{ toolkit_home }}
 

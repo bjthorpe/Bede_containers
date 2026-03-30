@@ -257,8 +257,7 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         from upet.calculator import UPETCalculator  
         checkpoint_file = UPET[ML_model_option]
         toolkit_home=get_toolkit_home()
-        #ASE_Calculator = UPETCalculator(checkpoint_path=checkpoint_file, device=kwargs['device'],model=ML_model_option_lower)
-        ASE_Calculator = UPETCalculator(model="pet-oam-xl", version="1.0.0", device="cpu")
+        ASE_Calculator = UPETCalculator(checkpoint_path=checkpoint_file, device=kwargs['device'],model=ML_model_option_lower)
     else:
         print(f"Unknown module {ML_model_option}")
         sys.exit(1)
