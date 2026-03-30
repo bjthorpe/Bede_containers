@@ -61,6 +61,19 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cuda'):
         'nequip-mp-l',
     ]
 
+    UPET = [
+        'pet-oam-xl',
+        'pet-oam-l',
+        'pet-omat-l',
+        'pet-omat-xl',
+        'pet-omat-s',
+        'pet-omat-xs',
+        'pet-mad-1.5-s',
+        'pet-mad-1.5-xs',
+        'pet-spice-l',
+        'pet-spice-s',
+    ]
+
     ML_model_option_lower=ML_model_option.lower()
 
 
@@ -156,7 +169,22 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cuda'):
         self.Atoms = Atoms
         self.toolkit = 'ASE'
         self.model = Get_ASE_Calculator(ML_model_option,device=device)
+# UPET: universal atomistic models
+    elif ML_model_option_lower in UPET:
 
+        try:
+            from upet.calculator import UPETCalculator 
+        except:
+            initialise_error('UPET module cannot be found, please install.',ML_port)
+        try:
+            from ase import Atoms
+        except:
+            initialise_error('ASE module cannot be found, please install.',ML_port)
+        
+        self.Atoms = Atoms
+        self.toolkit = 'ASE'
+        self.model = Get_ASE_Calculator(ML_model_option,device=device)
+    
     elif ML_model_option_lower == 'chgnet':
 
         try:

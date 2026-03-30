@@ -348,7 +348,36 @@ def format_command(
         apptainer_command = (
             f"apptainer build{build_options_str}{sand_flag}{enc_flag}{gpu_flag}{image} {definition}"
         )
+    # convert existing container to/from editable sandbox
+    elif operation == "convert":
+        
+        image_exists(image)
 
+        if Path(Container.image_file).is_file():
+            msg = "Converting to Writable Sandbox"
+            sand_flag = " --sandbox "
+            task = 'writable sandbox'
+        else: 
+            msg = "Converting to .sif file"
+            sand_flag = " "
+            task = '.sif file'
+
+        print(f'you are about to convert {Container.image_file} to a {task} is this correct?')
+        user_input = input('(yes/no)?')
+        
+        while True:
+            if user_input.lower() == 'yes' or user_input.lower() == 'y':
+                break
+            elif user_input.lower() == 'no' or user_input.lower() == 'n':
+                print("convert aborted")
+                sys.exit(0)
+            else:
+                print('Type yes or no')
+
+        apptainer_command = (
+            f"apptainer build -F {sand_flag}{enc_flag}{image} {image}"
+        )
+        
     elif operation == "start":
         msg = "Starting"
         image_exists(image)
@@ -402,6 +431,11 @@ def parse_cmd_arguments():
     run_parser.add_argument("cmd", type=str, nargs=argparse.REMAINDER, help="Command(s) to run")
     run_parser.add_argument("--writable", action="store_true", help="Run container as an editable sandbox, useful for dev/debugging. Needs to be built with --writable first.")
     run_parser.add_argument("--interactive", action="store_true", help="run in interactive mode, ignores extra commands")
+    
+    # sub-parser for the convert operation
+    conv_parser = subparsers.add_parser("convert", help=f"Convert existing Model Container to/from editable/static, useful for development as it saves having to re-build containers when making small changes.")
+
+    conv_parser.add_argument("model_name", type=str, help="Name of Model to use")
 
     # sub-parser for the build operation
     build_parser = subparsers.add_parser(
@@ -561,13 +595,14 @@ def main() -> int:
             )
             return e.returncode
         
-        if args.operation == 'start' and hasattr(args,'port'):
-            success =  wait_for_port("127.0.0.1",args.port,args.num_retry,args.timeout)
-            if not success:
-                print(f"ERROR: Sever on port {args.port} does not appear to have started:")
-                print(f"ERROR: There is clearly an issue so stopping container")
-                proc = subprocess.run(f"apptainer instance stop {model_name}", shell=True)
-        
+        if args.operation == 'start':
+            if args.port != None:
+                success =  wait_for_port("127.0.0.1",args.port,args.num_retry,args.timeout)
+                if not success:
+                    print(f"ERROR: Sever on port {args.port} does not appear to have started:")
+                    print(f"ERROR: There is clearly an issue so stopping container")
+                    proc = subprocess.run(f"apptainer instance stop {model_name}", shell=True)
+            
     # return code is used by pytest to check code ran successfully
         return proc.returncode
     return 0

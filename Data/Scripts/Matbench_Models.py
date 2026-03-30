@@ -83,6 +83,19 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         'nequip-mp-l':f'{models_dir}/Nequip/NequIP-MP-L-0.1.nequip.zip',
     }
 
+    UPET = {
+        'PET-OAM-XL':f'{models_dir}/UPET/pet-oam-xl-v1.0.0.ckpt',
+        'PET-OAM-L':f'{models_dir}/UPET/pet-oam-l-v0.1.0.ckpt',
+        'PET-OMAT-L':f'{models_dir}/UPET/pet-oam-l-v1.0.0.ckpt',
+        'PET-OMAT-XL':f'{models_dir}/UPET/pet-oam-xl-v1.0.0.ckpt',
+        'PET-OMAT-S':f'{models_dir}/UPET/pet-oam-s-v1.0.0.ckpt',
+        'PET-OMAT-XS':f'{models_dir}/UPET/pet-oam-xs-v1.0.0.ckpt',
+        'PET-MAD-1.5-S':f'{models_dir}/UPET/pet-mad-s-v1.5.0.ckpt',
+        'PET-MAD-1.5-XS':f'{models_dir}/UPET/pet-mad-xs-v1.5.0.ckpt',
+        'PET-SPICE-L':f'{models_dir}/UPET/pet-spice-l-v0.2.0.ckpt',
+        'PET-SPICE-S': f'{models_dir}/UPET/pet-spice-s-v0.2.0.ckpt'
+    }
+
     ML_model_option_lower = ML_model_option.lower()
     ASE_Calculator = None
 
@@ -213,7 +226,7 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         toolkit_home=get_toolkit_home()
         compile_path=f"{toolkit_home}/Models/Nequip/{kwargs['device']}/{ML_model_option}.nequip.pt2"
 
-# Call bash script to Compile the model if needed
+    # Call bash script to Compile the model if needed
         if not Path(compile_path).exists():
             print(f"***************************************************")
             print(f"{compile_path}")
@@ -226,6 +239,26 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         ASE_Calculator = NequIPCalculator.from_compiled_model(
             compile_path=compile_path,
             device=kwargs['device'])
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # UPET: universal atomistic models
+    #
+    # universal interatomic potentials for advanced materials modeling across 
+    # the periodic table. These models are based on the Point Edge Transformer 
+    # (PET) architecture trained on various popular atomistic datasets, and 
+    # they are capable of predicting energies and forces in complex atomistic 
+    # workflows.
+    #
+    # https://github.com/lab-cosmo/upet/tree/main
+    #
+    #       Params:
+    #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif ML_model_option in UPET:
+        from upet.calculator import UPETCalculator  
+        checkpoint_file = UPET[ML_model_option]
+        toolkit_home=get_toolkit_home()
+        #ASE_Calculator = UPETCalculator(checkpoint_path=checkpoint_file, device=kwargs['device'],model=ML_model_option_lower)
+        ASE_Calculator = UPETCalculator(model="pet-oam-xl", version="1.0.0", device="cpu")
     else:
         print(f"Unknown module {ML_model_option}")
         sys.exit(1)

@@ -15,6 +15,7 @@ From: ubuntu:24.04
     echo "Nothing to copy from {{ toolkit_home }}"
 
 %startscript
+    exec > {{ toolkit_home }}/logs/cowsay.out 2> {{ toolkit_home }}/logs/cowsay.err
     # Run cowsay with a default message
     /usr/games/fortune | /usr/games/cowsay 
 
