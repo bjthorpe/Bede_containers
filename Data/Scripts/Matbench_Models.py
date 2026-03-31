@@ -97,6 +97,20 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     }
     MACE = {'mace':f'mace-omat-0-medium.model'}
 
+    # multi dataset models from 7net that require task
+    SEVENNET_multi = {
+        'SevenNet-Omni':'7net-omni',
+        'SevenNet-Omni-i8':'7net-omni-i8',
+        'SevenNet-Omni-i12':'7net-omni-i12',
+        'SevenNet-MF-ompa':'7net-mf-ompa',
+    }
+    # single dataset models so no task required
+    SEVENNET_single = {
+        'SevenNet-omat':'7net-omat',
+        'SevenNet-0': '7net-0',
+        'SevenNet-l3i5': '7net-l3i5',
+    }
+
     ML_model_option_lower = ML_model_option.lower()
     ASE_Calculator = None
 
@@ -267,6 +281,78 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         toolkit_home=get_toolkit_home()
         ASE_Calculator = UPETCalculator(checkpoint_path=checkpoint_file, device=kwargs['device'],model=ML_model_option_lower)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # SevenNet pretrained models (Multi)
+    #
+    # These are multi-fidelity architecture models, thus Multiple inference tasks are available
+    # through the task keyword.
+    #
+    # Each task is designed to produce results that are consistent with the DFT settings used 
+    # in the corresponding training datasets. For example, mpa is trained on the combined 
+    # MPtrj and sAlex datasets and is used for evaluating Matbench Discovery, while omat24 
+    # is trained on the OMat24 dataset. see 
+    # https://sevennet.readthedocs.io/en/latest/user_guide/pretrained.html for details of 
+    # each model and avalible tasks.
+    #
+    #      Params:
+    #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
+    #           "task" - Set the task for your application.
+    #                    This must be one of:
+    #                        'mpa',
+    #                        'omat24',
+    #                        'matpes_pbe',
+    #                        'oc20',
+    #                        'oc22',
+    #                        'odac23',
+    #                        'omol25_low',
+    #                        'omol25_high',
+    #                        'spice','qcml',
+    #                        'pet_mad',
+    #                        'mp r2scan',
+    #                        'matpes_r2scan'
+    #
+    # Note: Thease are set with the task cmd argument
+    # 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif ML_model_option in SEVENNET_multi:
+        try:
+            from sevenn.calculator import SevenNetCalculator
+        except:
+            raise ModuleNotFoundError('SevenNet cannot be found, please install.')
+        
+        # set avalble tasks based on model
+        if ML_model_option_lower == 'sevennet-mf-ompa':
+            avalible_tasks = ['mpa','omat24']
+        else:
+            avalible_tasks = ['mpa','omat24','matpes_pbe','oc20','oc22','odac23',
+                              'omol25_low','omol25_high','spice','qcml','pet_mad',
+                              'mp r2scan','matpes_r2scan']
+        # check task is both provided and correct.
+        if "task" not in kwargs:
+            print(f'Svennet Model: {ML_model_option} requires the input argument "task".')
+            print(f'This must be one of: {avalible_tasks}.')
+            sys.exit(11)
+        if kwargs['task'] not in avalible_tasks:
+            print(f'unknown input argument {kwargs['task']}.')
+            print(f'This must be one of: {avalible_tasks}.')
+            sys.exit(11)
+
+        ASE_Calculator = SevenNetCalculator(model=SEVENNET_multi[ML_model_option], modal=kwargs['task'],device=kwargs['device'])
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # SevenNet pretrained models (single)
+    # 
+    # Sinlge task models from SevenNet, no task argumant required
+    #
+    #      Params:
+    #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
+    # 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif ML_model_option in SEVENNET_single:
+        try:
+            from sevenn.calculator import SevenNetCalculator
+        except:
+            raise ModuleNotFoundError('SevenNet cannot be found, please install.')
+    
+        ASE_Calculator = SevenNetCalculator(model=SEVENNET_single[ML_model_option],device=kwargs['device'])
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # END
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
