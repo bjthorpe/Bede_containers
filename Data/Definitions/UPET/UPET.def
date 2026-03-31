@@ -12,7 +12,7 @@ From: ubuntu:24.04
 %post -c /bin/bash
     apt update
     apt install -y build-essential wget g++ git haproxy python3-pip python3.12-venv
-    python -m venv /envs/ML_env
+    python3 -m venv /envs/ML_env
     source /envs/ML_env/bin/activate
     pip install --upgrade pip
     #pip install upet twisted
