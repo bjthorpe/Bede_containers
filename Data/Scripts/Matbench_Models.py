@@ -95,6 +95,7 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         'PET-SPICE-L':f'{models_dir}/UPET/pet-spice-l-v0.2.0.ckpt',
         'PET-SPICE-S': f'{models_dir}/UPET/pet-spice-s-v0.2.0.ckpt'
     }
+    MACE = {'mace':f'mace-omat-0-medium.model'}
 
     ML_model_option_lower = ML_model_option.lower()
     ASE_Calculator = None
@@ -119,7 +120,7 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
             #if path to model not provided use default models directory
             kwargs['load_path'] = MatterSim[ML_model_option_lower]
 
-        ASE_Calculator = MatterSimCalculator(**kwargs)
+        ASE_Calculator = MatterSimCalculator(load_path=kwargs['load_path'],device=kwargs['device'])
 
     ###############################################################################
     #   MACE - Fast and accurate machine learning interatomic potentials with 
@@ -138,11 +139,11 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
             from mace.calculators import MACECalculator
         except:
             raise ModuleNotFoundError('MACE cannot be found, please install.')
-
+        
         if 'model_paths' not in kwargs:
-            kwargs['model_paths'] = 'mace-omat-0-medium.model'
+            kwargs['model_paths']= MACE[ML_model_option_lower]
 
-        ASE_Calculator = MACECalculator(**kwargs)
+        ASE_Calculator = MACECalculator(model_paths=kwargs['model_paths'],device=kwargs['device'])
     ###############################################################################
 
     #          Meta Ai (Facebook)
@@ -177,7 +178,6 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     #
     #       Params:
     #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
-    #           "workers" - Number of Gpus to use for inferencing
     #           "task" - Set the task for your application.
     #                    This must be one of:
     #                       oc20: for catalysis
@@ -194,7 +194,9 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         
         # check kwargs are correct
         if "task" not in kwargs:
-            raise ValueError('Meta UMA model requires the input argument "task".')
+            print('Meta UMA model requires the input argument "task".')
+            print('This must be one of: oc20, omat, omol ,odac, or, omc".')
+            sys.exit(11)
 
         predictor = pretrained_mlip.get_predict_unit(
             Meta_UMA[ML_model_option_lower], device=kwargs["device"]
@@ -220,8 +222,11 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     elif ML_model_option_lower in NequIP:
-        from nequip.integrations.ase import NequIPCalculator
-
+        try:
+            from nequip.integrations.ase import NequIPCalculator
+        except:
+            raise ModuleNotFoundError('Nequip cannot be found, please install.')
+        
         checkpoint_file = NequIP[ML_model_option_lower]
         toolkit_home=get_toolkit_home()
         compile_path=f"{toolkit_home}/Models/Nequip/{kwargs['device']}/{ML_model_option}.nequip.pt2"
@@ -254,10 +259,17 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     elif ML_model_option in UPET:
-        from upet.calculator import UPETCalculator  
+        try:
+            from upet.calculator import UPETCalculator
+        except:
+            raise ModuleNotFoundError('UPET cannot be found, please install.')
         checkpoint_file = UPET[ML_model_option]
         toolkit_home=get_toolkit_home()
         ASE_Calculator = UPETCalculator(checkpoint_path=checkpoint_file, device=kwargs['device'],model=ML_model_option_lower)
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # END
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     else:
         print(f"Unknown module {ML_model_option}")
         sys.exit(1)
