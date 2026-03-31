@@ -9,7 +9,7 @@
 
 NequIP-OAM-XL:
   description: 'NequIP GNN foundational potential for materials "extra-large" model, optimised for accuracy.' 
-  group: NequIP
+  groups: ['MatBench','NequIP']
   image_file: Images/Nequip/NequIP-OAM-XL.sif
   container_definition: Definitions/NequIP/NequIP.def
   build_options: {'model_name':'NequIP-OAM-XL'}
@@ -17,7 +17,7 @@ NequIP-OAM-XL:
 
 Allegro-OAM-L:
   description: 'Allegro GNN foundational potential for materials.'
-  group: NequIP
+  groups: ['MatBench',NequIP','Allegro']
   image_file: Images/Allegro/Allegro-OAM-L.sif
   container_definition: Definitions/NequIP/Allegro.def
   build_options: {'model_name':'Allegro-OAM-L'}
@@ -25,7 +25,7 @@ Allegro-OAM-L:
 
 NequIP-OAM-L:
   description: 'NequIP GNN foundational potential for materials "large" model, optimised for speed and accuracy.' 
-  group: NequIP
+  groups: ['MatBench','NequIP']
   image_file: Images/Nequip/NequIP-OAM-L.sif
   container_definition: Definitions/NequIP/NequIP.def
   build_options: {'model_name':'NequIP-OAM-L'}
@@ -35,7 +35,7 @@ NequIP-OAM-L:
 # 'compliant' though notably less accurate than the other models.
 Allegro-MP-L:
   description: '"Matbench-compliant" Allegro potential for materials "large" model, optimised for speed and accuracy.' 
-  group: NequIP
+  groups: ['MatBench','NequIP','Allegro']
   image_file: Images/Allegro/Allegro-MP-L.sif
   container_definition: Definitions/NequIP/Allegro.def
   build_options: {'model_name':'Allegro-MP-L'}
@@ -43,7 +43,7 @@ Allegro-MP-L:
 
 NequIP-MP-L:
   description: '"Matbench-compliant" NequIP GNN potential for materials "large" model, optimised for speed and accuracy.'
-  group: NequIP
+  groups: ['MatBench','NequIP']
   image_file: Images/Nequip/NequIP-MP-L.sif
   container_definition: Definitions/NequIP/NequIP.def
   build_options: {'model_name':'NequIP-MP-L'}

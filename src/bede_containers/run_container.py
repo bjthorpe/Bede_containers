@@ -45,7 +45,7 @@ class ContainerConfig:
     encryption_key: str = field(default="")
     shared_directories: List[str] = field(default_factory=list)
     dont_mount: List[str] = field(default_factory=list)
-    group: str = field(default="")
+    groups: List[str] = field(default_factory=list)
     encrypted: bool = field(default=False)
     device: str = field(default='cuda')
     build_options: dict = field(default_factory=dict)
@@ -459,7 +459,9 @@ def parse_cmd_arguments():
     list_parser.add_argument(
         "--group", type=str, default="", help="optional group of containers to list"
     )
-
+    list_parser.add_argument(
+        "--long_desc","-l", action="store_true", help="Output full descriptions, default is truncated to 80 characters."
+    )
     # sub-parser for the start operation
     start_parser = subparsers.add_parser("start", help="Start Container as background process.")
 
@@ -494,28 +496,58 @@ def parse_cmd_arguments():
     args = parser.parse_args()
     return args
 
+def truncate_string(s, length):
+    if len(s) > length:
+        return s[:length-3] + '...'  # Subtract 3 to add ellipsis
+    return s
 
-def list_containers(Containers: dict, group: str = ""):
+from difflib import get_close_matches
+
+def find_in_list(query, items, cutoff=0.8):
+    """
+    query: string to search for
+    items: list of strings
+    cutoff: similarity threshold (0 to 1)
+
+    returns: matches OR suggestion string
+    """
+    query_lower = query.lower()
+    items_lower = [item.lower() for item in items]
+
+    # Find close matches
+    matches_lower = get_close_matches(query_lower, items_lower, cutoff=cutoff)
+
+    if matches_lower:
+        return True
+
+    return False
+
+def list_containers(Containers: dict, group: str = "",long_desc=False):
     '''
     Print filtered list of containers to stdout, 
     formatted for readability
     
     :params
         Containers: dictionary of available containers, keys are 
-                    container names and values are the group it 
+                    container names and values are the groups it 
                     belongs to.
         group:      group to filter output by
+        long_desc:  output full descriptions
 
     '''
     msg_length=40
     cmd_output("*",sep="",length=msg_length)
-    cmd_output("Currently available containers:",length=msg_length)
+    cmd_output("Currently available containers: ",length=msg_length)
     cmd_output("*",sep="",length=msg_length)
-    print(f"Name:          Group:    Description:")
+    print(f"Name:          | Groups:    | Description:")
     cmd_output("-",sep="",sentinel='-',length=msg_length)    
     for key, value in Containers.items():
-        if value.group == group or group == "":
-            output = f"{key:<15}{value.group:<10}{value.description}"
+        if find_in_list(group, value.groups) or group == "":
+            if long_desc:
+                desc = value.description
+            else:
+                desc = truncate_string(value.description,80)
+            output = f"{truncate_string(key,15):<15} | {', '.join(value.groups)} | {desc}"
             print(output)
 
 def config_to_log(config:ContainerConfig,model_name:str):
@@ -542,7 +574,7 @@ def main() -> int:
 
     if args.operation.lower() == "list":
         # just list all detected containers then exit
-        list_containers(Containers, args.group)
+        list_containers(Containers, args.group,args.long_desc)
         return 0
     # set flags for writable and interactive containers
     if not hasattr(args,'writable'):

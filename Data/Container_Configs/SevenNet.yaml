@@ -1,0 +1,60 @@
+# Config file for pretained models from Sevennet
+# full details of avalible models can be found here: https://sevennet.readthedocs.io/en/latest/user_guide/pretrained.html#sevennet-omat
+
+SevenNet-Omni:
+  description: 'Sevennet Recomened model trained on 15 abinitio datasets' 
+  groups: ['MatBench','SevenNet']
+  image_file: Images/SevenNet/SevenNet-Omni.sif
+  container_definition: Definitions/SevenNet/SevenNet.def
+  build_options: {'model_name':'SevenNet-Omni'}
+  CASTEP: True
+
+SevenNet-Omni-i8:
+  description: 'SevenNet-Omni-i8 follows the same training strategy as SevenNet-Omni, except with an increased model capacity.' 
+  groups: ['MatBench','SevenNet']
+  image_file: Images/SevenNet/SevenNet-Omni-i8.sif
+  container_definition: Definitions/SevenNet/SevenNet.def
+  build_options: {'model_name':'SevenNet-Omni-i8'}
+  CASTEP: True
+
+SevenNet-Omni-i12:
+  description: 'SevenNet-Omni-i12 follows the same training strategy as SevenNet-Omni, except with an increased model capacity.' 
+  groups: ['MatBench','SevenNet']
+  image_file: Images/SevenNet/SevenNet-Omni-i12.sif
+  container_definition: Definitions/SevenNet/SevenNet.def
+  build_options: {'model_name':'SevenNet-Omni-i12'}
+  CASTEP: True
+
+SevenNet-MF-ompa:
+  description: 'SevenNet Model trained on the MPtrj, sAlex and OMat24 datasets.' 
+  groups: ['MatBench','SevenNet']
+  image_file: Images/SevenNet/SevenNet-MF-ompa.sif
+  container_definition: Definitions/SevenNet/SevenNet.def
+  build_options: {'model_name':'SevenNet-MF-ompa'}
+  CASTEP: True
+
+SevenNet-omat:
+  description: 'SevenNet Model trained on just the OMat24 dataset. outperforms SevenNet-l3i5 on most tasks, except for the isolated molecule energy.' 
+  groups: ['MatBench','SevenNet']
+  image_file: Images/SevenNet/SevenNet-omat.sif
+  container_definition: Definitions/SevenNet/SevenNet.def
+  build_options: {'model_name':'SevenNet-omat'}
+  CASTEP: True
+
+SevenNet-0:
+  description: 'early pretrained model trained on the MPtrj dataset. Sevennet recommend using newer and more accurate models, it can still be useful in certain cases due to its short inference time.' 
+  groups: ['MatBench','SevenNet']
+  image_file: Images/SevenNet/SevenNet-0.sif
+  container_definition: Definitions/SevenNet/SevenNet.def
+  build_options: {'model_name':'SevenNet-0'}
+  CASTEP: True
+
+SevenNet-l3i5:
+  description: 'This model increases the maximum spherical harmonic degree (lmax) to 3, compared to SevenNet-0, which has an lmax
+of 2. While l3i5 offers improved accuracy for various systems, it is approximately four times slower than SevenNet-0.'
+  groups: ['MatBench',SevenNet']
+  image_file: Images/SevenNet/SevenNet-l3i5.sif
+  container_definition: Definitions/SevenNet/SevenNet.def
+  build_options: {'model_name':'SevenNet-l3i5'}
+  CASTEP: True
+

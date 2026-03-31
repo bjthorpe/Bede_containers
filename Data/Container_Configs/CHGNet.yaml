@@ -2,7 +2,8 @@
 
 CHGNet:
   description: 'CHGNet example container, adapted from castep26.'
-  group: CHGNet
+  groups: ['MatBench','CHGNet']
   image_file: Images/CHGNet/CHGNet.sif
   container_definition: Definitions/CHGNet/CHGNet.def
   CASTEP: True
+  

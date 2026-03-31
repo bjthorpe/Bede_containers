@@ -1,5 +1,5 @@
 # This is a vaild dummy continer config to test with
 Lammacpp:
   description: 'This container is for testing lammacpp from dockerhub'
-  group: llm
+  groups: [llm]
   container_definition: ghcr.io/ggml-org/llama.cpp:full

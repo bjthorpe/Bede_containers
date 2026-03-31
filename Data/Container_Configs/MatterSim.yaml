@@ -2,7 +2,7 @@
 
 MatterSim:
   description: 'Mattersim example container, pinched from castep26.'
-  group: MatterSim
+  groups: ['MatBench','MatterSim']
   image_file: Images/MatterSim/MatterSim.sif
   container_definition: Definitions/MatterSim/MatterSim.def
   CASTEP: True
