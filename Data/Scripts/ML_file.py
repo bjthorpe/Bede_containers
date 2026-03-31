@@ -177,7 +177,10 @@ def initialise_model(ML_model_option,ML_task=None,device='cuda'):
             '''
             try:
                 return original_script(obj, *args, **kwargs)
-            except Exception:
+            except Exception as e:
+                print("Warning: The following error occurred with pytorch jit compilation: {e}")
+                print("So we are skipping jit and reverting to eager mode. This is not a major problem")
+                print("as the result will be the same. However, performance will not be optimal.")
                 return obj
 
         torch.jit.script = skip_jit
