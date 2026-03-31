@@ -547,7 +547,7 @@ def list_containers(Containers: dict, group: str = "",long_desc=False):
                 desc = value.description
             else:
                 desc = truncate_string(value.description,80)
-            output = f"{truncate_string(key,15):<15} | {', '.join(value.groups)} | {desc}"
+            output = f"{key:<15} | {', '.join(value.groups)} | {desc}"
             print(output)
 
 def config_to_log(config:ContainerConfig,model_name:str):
