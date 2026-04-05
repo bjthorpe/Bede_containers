@@ -28,6 +28,19 @@ def wait_for_port(host, port, retries=5, delay=10):
 
     return False
 
+def is_writable(file):
+    '''
+    check that given file has write permission
+    '''
+    import os
+    try:
+        with open(file, 'w') as f:
+            pass
+        os.remove(file)
+        return True
+    except OSError:
+        return False
+
 toolkit_home = get_toolkit_home()
 
 logging.basicConfig(
@@ -50,7 +63,9 @@ class ContainerConfig:
     device: str = field(default='cuda')
     build_options: dict = field(default_factory=dict)
     CASTEP: bool = field(default=False)
-
+    output_file: str = field(default=str(Path.cwd()))
+    available_tasks: List[str] = field(default_factory=list)
+    
 class CMD_FormatError(Exception):
     """
     Custom Exception to be raised when using an operation that
@@ -317,6 +332,10 @@ def format_command(
             print("error: the following arguments are required: cmd")
             sys.exit(12)
         cmd = " ".join(CMD_Options['cmd'])
+    # pass task option to container if required by the model
+        if CMD_Options['task'] !='':
+            cmd = cmd + f' --task {CMD_Options['task'] }'
+
         if CMD_Options['writable']:
             sand_flag = " --writable "
         else:    
@@ -381,15 +400,35 @@ def format_command(
     elif operation == "start":
         msg = "Starting"
         image_exists(image)
+        # check file for stdout/stderr is writable
+        if Container.output_file == '':
+            Container.output_file = f'{Path.cwd}/{model_name}'
+        if is_writable(Container.output_file):
+            cmd_output('*',sep='',log=True)
+            cmd_output(f"Container output can be found in {Container.output_file}.out and {Container.output_file}.err",log=True)
+            cmd_output('*',sep='',log=True)
+            Container.output_file = f'{toolkit_home}/logs/{model_name}'
+        else:
+            cmd_output('*',sep='',log=True)
+            cmd_output(f"warning: output directory {Container.output_file} is not writable",log=True)
+            cmd_output(f"output will default to {toolkit_home}/logs/{model_name}",log=True)
+            cmd_output('*',sep='',log=True)
+
         # containers for use with CASTEP have a slightly different startup command.
         if Container.CASTEP:
             if CMD_Options['port']==None:
                 # use default port for castep
                 CMD_Options['port']=5000
-            
-            cmd = f"-p {CMD_Options['port']} -t {CMD_Options['timeout']} -N {CMD_Options['num_servers']}"
 
-        apptainer_command = f"apptainer instance start{enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name}"
+            #pass in task argument if needed
+            if CMD_Options['task'] !='':
+                task=f'-T {CMD_Options['task']}'
+            else:
+                task=''
+            cmd = f"-p {CMD_Options['port']} -t {CMD_Options['timeout']} -N {CMD_Options['num_servers']} {task}"
+        else:
+            cmd =''
+        apptainer_command = f"apptainer instance start --env OUTPUT_FILE={Container.output_file}/{model_name} {enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name} {cmd}"
 
     elif operation == "stop":
         msg = "Stopping"
@@ -431,7 +470,8 @@ def parse_cmd_arguments():
     run_parser.add_argument("cmd", type=str, nargs=argparse.REMAINDER, help="Command(s) to run")
     run_parser.add_argument("--writable", action="store_true", help="Run container as an editable sandbox, useful for dev/debugging. Needs to be built with --writable first.")
     run_parser.add_argument("--interactive", action="store_true", help="run in interactive mode, ignores extra commands")
-    
+    run_parser.add_argument("-T","--task", type=str, default='', help="Task to perform, required for all Meta UMA and selected SevenNet models, ignored by all others. See the docs for valid options.")
+
     # sub-parser for the convert operation
     conv_parser = subparsers.add_parser("convert", help=f"Convert existing Model Container to/from editable/static, useful for development as it saves having to re-build containers when making small changes.")
 
@@ -470,7 +510,8 @@ def parse_cmd_arguments():
     start_parser.add_argument("-t","--timeout", type=int, default=10, help="time in seconds before server times out. Default: 10")
     start_parser.add_argument("-n","--num_servers", type=int, default=1, help="Used with CASTEP, number of python servers to spawn. Default: 1")                       
     start_parser.add_argument("-r","--num_retry", type=int, default=5, help="number of times to retry when waiting for python server. Default: 5")
-    
+    start_parser.add_argument("-T","--task", type=str, default='', help="Task to perform, required for all Meta UMA and selected SevenNet models, ignored by all others. See the docs for valid options")
+
     # sub-parser for the stop operation
     stop_parser = subparsers.add_parser(
         "stop", help="Stop container that is running in the background"
@@ -555,6 +596,26 @@ def config_to_log(config:ContainerConfig,model_name:str):
 
     for key, value in config.__dict__.items():
         logging.info(f"{key}: {value}")
+
+def check_task(task,available_tasks,model_name):
+    '''
+    Function to check if task argument is a valid option 
+    from the list read in from the yaml file.
+    '''
+    if available_tasks==[]:
+        # no tasks required 
+        return
+    if task=='':
+        print(f'Input argument --task is required for {model_name}.')
+        print(f'This must be one of: {available_tasks}.')
+        sys.exit(12)
+    elif task not in available_tasks:
+        print(f'unknown task: {task} for {model_name}.')
+        print(f'This must be one of: {available_tasks}.')
+        sys.exit(11)
+    else:
+        print(f'Performing task: {task} for {model_name}.')
+        return
     
 ###############################################################################
 # Main program starts here
@@ -607,6 +668,10 @@ def main() -> int:
 
     if not hasattr(args,'cmd'):
         args.cmd=[]
+
+    # check --task option if required by the model
+    if hasattr(args,'task'):
+        check_task(args.task,Containers[model_name].available_tasks,model_name)
 
     # get dict of cmd arguments
     cmd_options= vars(args)

@@ -13,7 +13,18 @@ def initialise_model(ML_model_option,ML_task=None,device='cuda'):
     '''
     Initialise the ML model, only need to do this once
     '''
-
+    UPET = {
+        'pet-oam-xl',
+        'pet-oam-l',
+        'pet-omat-l',
+        'pet-omat-xl',
+        'pet-omat-s',
+        'pet-omat-xs',
+        'pet-mad-1.5-s',
+        'pet-mad-1.5-xs',
+        'pet-spice-l',
+        'pet-spice-s'
+    }
     ML_model_option_lower=ML_model_option.lower()
 
     if ML_model_option_lower in UPET:
@@ -64,12 +75,13 @@ def initialise_model(ML_model_option,ML_task=None,device='cuda'):
 
 class predict_from_cell:
 
-    def __init__(self,seed,model_name,device):
+    def __init__(self,seed,model_name,device,task=None):
 
         # Sort out inputs
         self.seed = seed
         self.model_name = model_name
         self.device       = device
+        self.task          = task
         # Variables used on cell reading
         self.cell          = None
         self.num_ions      = None
@@ -112,7 +124,7 @@ class predict_from_cell:
         '''
 
         # Initialise the model based ont he `medium' pre trained MACE model running on CPU to 64 bit precision
-        self.model = initialise_model(self.model_name,device=self.device)
+        self.model = initialise_model(self.model_name,device=self.device,ML_task=self.task)
 
         # Use MACE model to predict the energies, forces and stresses on the final structure
         self.cell.calc=self.model
@@ -150,7 +162,7 @@ if __name__ == '__main__':
     parser.add_argument('model_name',help='Name of Model to use.')
     parser.add_argument('seed',help='seed to use for filenames, this is auto generated as the last positional argument by CASTEP')
     parser.add_argument('-d','--device',default='cpu',help='The device to use for inference currently cpu or cuda')
-
+    parser.add_argument('-t','--task',default=None,help='Task to use for Meta UMA and some Sevennet models, this is ignored by all other models')
     args = parser.parse_args()
 
     devices=['cpu','cuda']
@@ -162,7 +174,7 @@ if __name__ == '__main__':
     cell_seed = args.seed
 
     # Initialise the prediction class, this reads the cell file on initialisation
-    C = predict_from_cell(cell_seed,model_name,device)
+    C = predict_from_cell(cell_seed,model_name,device,task=args.task)
 
     # Read in the cell file
     C.read_cell_file()

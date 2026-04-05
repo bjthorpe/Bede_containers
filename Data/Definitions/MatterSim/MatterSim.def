@@ -20,7 +20,7 @@ From: python:3.11
 # make blank dir in container for mounting toolkit_home to for use with --sandbox
     mkdir -p {{ toolkit_home }}
 %startscript
-
+    set -e
     # start with sensible defaults
     LISTEN_PORT=5000
     TIMEOUT_OVERWRITE=60

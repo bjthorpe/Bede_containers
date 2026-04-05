@@ -25,7 +25,7 @@ def parse_arguments():
     parser.add_argument('-M','--ML_model_option',type=str,default='None',
                         help='The ML method to use, e.g. CHGNet, MatterSim etc.'
                         ' Dependancies must be installed. Check main file for implemented methods')
-    parser.add_argument('-t','--task',type=str,default='None',
+    parser.add_argument('-t','--task',type=str,default=None,
                         help='The task to use for Meta UMA models, e.g. omol, omat, omc etc.'
                         ' This is required by Meta UMA Models but is ignored by all other models')
     parser.add_argument('-d','--device',type=str,default='cuda',

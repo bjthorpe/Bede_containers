@@ -20,7 +20,19 @@ def initialise_model(self,ML_model_option,ML_port,ML_task=None,device='cuda'):
     '''
     Initialise the ML model, only need to do this once
     '''
-
+    from ase import Atoms
+    UPET = {
+        'pet-omat-xl',
+        'pet-omat-l',
+        'pet-omat-l',
+        'pet-omat-xl',
+        'pet-omat-s',
+        'pet-omat-xs',
+        'pet-mad-1.5-s',
+        'pet-mad-1.5-xs',
+        'pet-spice-l',
+        'pet-spice-s'
+    }
     def initialise_error(message,port):
         print(f'ERROR: {message}')
         io.write_log('critical',message,port)

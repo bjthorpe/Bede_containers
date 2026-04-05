@@ -84,31 +84,31 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     }
 
     UPET = {
-        'PET-OAM-XL':f'{models_dir}/UPET/pet-oam-xl-v1.0.0.ckpt',
-        'PET-OAM-L':f'{models_dir}/UPET/pet-oam-l-v0.1.0.ckpt',
-        'PET-OMAT-L':f'{models_dir}/UPET/pet-oam-l-v1.0.0.ckpt',
-        'PET-OMAT-XL':f'{models_dir}/UPET/pet-oam-xl-v1.0.0.ckpt',
-        'PET-OMAT-S':f'{models_dir}/UPET/pet-oam-s-v1.0.0.ckpt',
-        'PET-OMAT-XS':f'{models_dir}/UPET/pet-oam-xs-v1.0.0.ckpt',
-        'PET-MAD-1.5-S':f'{models_dir}/UPET/pet-mad-s-v1.5.0.ckpt',
-        'PET-MAD-1.5-XS':f'{models_dir}/UPET/pet-mad-xs-v1.5.0.ckpt',
-        'PET-SPICE-L':f'{models_dir}/UPET/pet-spice-l-v0.2.0.ckpt',
-        'PET-SPICE-S': f'{models_dir}/UPET/pet-spice-s-v0.2.0.ckpt'
+        'pet-oam-xl':f'{models_dir}/UPET/pet-oam-xl-v1.0.0.ckpt',
+        'pet-oam-l':f'{models_dir}/UPET/pet-oam-l-v0.1.0.ckpt',
+        'pet-omat-l':f'{models_dir}/UPET/pet-oam-l-v1.0.0.ckpt',
+        'pet-omat-xl':f'{models_dir}/UPET/pet-oam-xl-v1.0.0.ckpt',
+        'pet-omat-s':f'{models_dir}/UPET/pet-oam-s-v1.0.0.ckpt',
+        'pet-omat-xs':f'{models_dir}/UPET/pet-oam-xs-v1.0.0.ckpt',
+        'pet-mad-1.5-s':f'{models_dir}/UPET/pet-mad-s-v1.5.0.ckpt',
+        'pet-mad-1.5-xs':f'{models_dir}/UPET/pet-mad-xs-v1.5.0.ckpt',
+        'pet-spice-l':f'{models_dir}/UPET/pet-spice-l-v0.2.0.ckpt',
+        'pet-spice-s': f'{models_dir}/UPET/pet-spice-s-v0.2.0.ckpt'
     }
     MACE = {'mace':f'mace-omat-0-medium.model'}
 
     # multi dataset models from 7net that require task
     SEVENNET_multi = {
-        'SevenNet-Omni':'7net-omni',
-        'SevenNet-Omni-i8':'7net-omni-i8',
-        'SevenNet-Omni-i12':'7net-omni-i12',
-        'SevenNet-MF-ompa':'7net-mf-ompa',
+        'sevennet-omni':'7net-omni',
+        'sevennet-omni-i8':'7net-omni-i8',
+        'sevennet-omni-i12':'7net-omni-i12',
+        'sevennet-mf-ompa':'7net-mf-ompa',
     }
     # single dataset models so no task required
     SEVENNET_single = {
-        'SevenNet-omat':'7net-omat',
-        'SevenNet-0': '7net-0',
-        'SevenNet-l3i5': '7net-l3i5',
+        'sevennet-omat':'7net-omat',
+        'sevennet-0': '7net-0',
+        'sevennet-l3i5': '7net-l3i5',
     }
 
     ML_model_option_lower = ML_model_option.lower()
@@ -206,10 +206,16 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         except:
             raise ModuleNotFoundError('fairchem (V2.13) cannot be found, please install.')
         
+        available_tasks = ["oc20", "omat", "omol" ,"odac", "omc"]
         # check kwargs are correct
-        if "task" not in kwargs:
+        if kwargs['task']==None:
             print('Meta UMA model requires the input argument "task".')
-            print('This must be one of: oc20, omat, omol ,odac, or, omc".')
+            print(f'This must be one of: {available_tasks}.')
+            sys.exit(11)
+        elif kwargs['task'] not in available_tasks:
+            task = kwargs['task']
+            print(f'unknown task {task}.')
+            print(f'This must be one of: {available_tasks}.')
             sys.exit(11)
 
         predictor = pretrained_mlip.get_predict_unit(
@@ -272,7 +278,7 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     #       Params:
     #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    elif ML_model_option in UPET:
+    elif ML_model_option_lower in UPET:
         try:
             from upet.calculator import UPETCalculator
         except:
@@ -313,7 +319,7 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     # Note: Thease are set with the task cmd argument
     # 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    elif ML_model_option in SEVENNET_multi:
+    elif ML_model_option_lower in SEVENNET_multi:
         try:
             from sevenn.calculator import SevenNetCalculator
         except:
@@ -327,12 +333,13 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
                               'omol25_low','omol25_high','spice','qcml','pet_mad',
                               'mp r2scan','matpes_r2scan']
         # check task is both provided and correct.
-        if "task" not in kwargs:
+        if kwargs["task"]==None:
             print(f'Svennet Model: {ML_model_option} requires the input argument "task".')
             print(f'This must be one of: {avalible_tasks}.')
             sys.exit(11)
-        if kwargs['task'] not in avalible_tasks:
-            print(f'unknown input argument {kwargs['task']}.')
+        elif kwargs['task'] not in avalible_tasks:
+            task = kwargs['task']
+            print(f'unknown task {task}.')
             print(f'This must be one of: {avalible_tasks}.')
             sys.exit(11)
 
@@ -346,7 +353,21 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
     # 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    elif ML_model_option in SEVENNET_single:
+    elif ML_model_option_lower in SEVENNET_single:
+        try:
+            from sevenn.calculator import SevenNetCalculator
+        except:
+            raise ModuleNotFoundError('SevenNet cannot be found, please install.')
+    
+        ASE_Calculator = SevenNetCalculator(model=SEVENNET_single[ML_model_option],device=kwargs['device'])
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # END
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    else:
+        print(f"Unknown module {ML_model_option}")
+        sys.exit(1)
+    return ASE_Calculator
+EVENNET_single:
         try:
             from sevenn.calculator import SevenNetCalculator
         except:

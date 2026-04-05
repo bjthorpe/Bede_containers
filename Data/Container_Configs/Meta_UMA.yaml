@@ -12,7 +12,8 @@ uma-s-1:
   container_definition: Definitions/Meta/UMA.def
   build_options: {'HF_AUTH':True,'checkpoint_file':'checkpoints/uma-s-1.pt', 'model_name':'uma-s-1'}
   CASTEP: True
-
+  available_tasks: ["oc20", "omat", "omol" ,"odac", "omc"]
+  
 uma-s-1p1:
   description: 'Version 1.1 of UMA model, trained using 150M parameters with 6M active.'
   groups: ['Meta','UMA']
@@ -20,6 +21,7 @@ uma-s-1p1:
   container_definition: Definitions/Meta/UMA.def
   build_options: {'HF_AUTH':True,'checkpoint_file':'checkpoints/uma-s-1p1.pt', 'model_name':'uma-s-1p1'}
   CASTEP: True
+  available_tasks: ["oc20", "omat", "omol" ,"odac", "omc"]
 
 uma-m-1p1:
   description: 'Version 1.1 of UMA model, trained using 1.4B parameters with 50M active.'
@@ -28,6 +30,7 @@ uma-m-1p1:
   container_definition: Definitions/Meta/UMA.def
   build_options: {'HF_AUTH':True,'checkpoint_file':'checkpoints/uma-m-1p1.pt', 'model_name':'uma-m-1p1'}
   CASTEP: True
+  available_tasks: ["oc20", "omat", "omol" ,"odac", "omc"]
 
 # single container with all models
 uma:
@@ -37,7 +40,7 @@ uma:
   container_definition: Definitions/Meta/UMA.def
   build_options: {'HF_AUTH':True,'checkpoint_file':'', 'model_name':'uma_all'}
   CASTEP: True
-
+  available_tasks: ["oc20", "omat", "omol" ,"odac", "omc"]
 # Not yet released (as of Jan 2026)
 # uma-l-1.1:
 #   description: 'Version 1.1 of UMA model, trained using 700M parameters with 700M active.'
