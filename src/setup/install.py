@@ -3,8 +3,6 @@ import platform
 import sys
 import os
 import textwrap
-import yaml
-from urllib.request import urlretrieve
 
 START_MARK = "# >>> ML TOOLKIT >>>"
 END_MARK = "# <<< ML TOOLKIT <<<"
@@ -29,20 +27,7 @@ def cmd_output(message:str,length=80,sentinel='*',sep=" "):
         result = f"{msg:{sentinel}^{length}}"
         print(result)
 
-def download_Nequip(url_yaml_file,toolkit_home):
-    ''' 
-    script to download Nequip model checkpoints
-    from yaml file containing models names and urls
-    '''
-    with open(f"{toolkit_home}/Scripts/{url_yaml_file}") as path:
-        urls = yaml.safe_load(path)
-    Path(f'{toolkit_home}/Models/Nequip').mkdir(parents=True, exist_ok=True)
-    cmd_output(f"Downloading Model checkpoint files for NequIP",sentinel=' ')
-    for model in urls:
-        print(f"Downloading: {model}")
-        urlretrieve(urls[model],f"{toolkit_home}/Models/Nequip/{model}-0.1.nequip.zip")
-    cmd_output("*",sep="")
-    return
+
 
 def detect_shell():
     ''' simple function to detect users shell'''
@@ -239,8 +224,6 @@ def create_toolkit_home():
                 sys.exit(1)
         
     cmd_output("*",sep="")
-
-    download_Nequip("Nequip_urls.yaml",toolkit_home)
     
     shell = detect_shell()
 
