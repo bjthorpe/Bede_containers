@@ -31,14 +31,54 @@ From: python:3.11
 # use this version to include uma_s1p2
 #GITHASH=973897224a01ccc7f1257e71e0587ee0d58d6af6
     echo "Downloading model file {{ checkpoint_file }}" 
-    hf download --revision ${GITHASH} --token {{ HF_AUTH }} facebook/UMA {{ checkpoint_file }} && \
+    hf download --revision ${GITHASH} --token {{ HF_AUTH }} facebook/UMA checkpoints/{{ checkpoint_file }} && \
     hf download --revision ${GITHASH} --token {{ HF_AUTH }} facebook/UMA references/form_elem_refs.yaml && \
     hf download --revision ${GITHASH} --token {{ HF_AUTH }} facebook/UMA references/iso_atom_elem_refs.yaml
-# make blank dir in container for mounting toolkit_home to for use with --sandbox
+
+# huggingface uses suymlinks and gives models meaningless names, likely its a sha hash or similar.
+# so we need to find and move the model checkpoint to make it easier to work with
+    echo "moving {{ checkpoint_file }} to /Models directory"
+# Find the first symlink named {{ checkpoint_file }}
+    link_path=$(find /Models -type l -name "{{ checkpoint_file }}" 2>/dev/null | head -n 1)
+
+# sanity check that we have found a symlink
+    if [[ -z "$link_path" ]]; then
+    echo "Symlink to {{ checkpoint_file }} not found"
+    exit 1
+    fi
+
+# Resolve the real file it points to
+    target_path=$(readlink -f "$link_path")
+
+# sanity check the model checkpoint actually exists.
+    if [[ ! -f "$target_path" ]]; then
+    echo "Target file does not exist: $target_path"
+    exit 1
+    fi
+
+    # Move checkpoint file to /Models directory
+    mv "$target_path" /Models/{{ checkpoint_file }}
+
+    # make blank dir in container for mounting toolkit_home to for use with --sandbox
     mkdir -p {{ toolkit_home }}
 
-%startscript 
-    
+%startscript
+    set -eu
+    # send stdout and stderr to toolkit home 
+    if [ -z "$OUTPUT_FILE" ]; then
+        OUTPUT_FILE={{ toolkit_home }}/logs/{{ model_name }}
+        echo "writing output to ${OUTPUT_FILE}">&2
+
+    elif ! touch "${OUTPUT_FILE}.out" 2>/dev/null; then
+            echo "Cannot write to $OUTPUT_FILE" >&2
+            OUTPUT_FILE={{ toolkit_home }}/logs/{{ model_name }}
+            echo "writing output to ${OUTPUT_FILE} instead" >&2
+    else
+        echo "writing output to ${OUTPUT_FILE}" >&2
+    fi
+
+    # force std out/stderr to go to $OUTPUT_FILE not ~/.apptainer
+    exec > ${OUTPUT_FILE}.out 2> ${OUTPUT_FILE}.err
     # start with sensible defaults
     LISTEN_PORT=5000
     TIMEOUT_OVERWRITE=60

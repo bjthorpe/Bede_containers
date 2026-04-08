@@ -10,7 +10,7 @@ uma-s-1:
   groups: ['Meta','UMA']
   image_file: Images/Meta/uma-s-1.sif
   container_definition: Definitions/Meta/UMA.def
-  build_options: {'HF_AUTH':True,'checkpoint_file':'checkpoints/uma-s-1.pt', 'model_name':'uma-s-1'}
+  build_options: {'HF_AUTH':True,'checkpoint_file':'uma-s-1.pt', 'model_name':'uma-s-1'}
   CASTEP: True
   available_tasks: ["oc20", "omat", "omol" ,"odac", "omc"]
   
@@ -19,7 +19,7 @@ uma-s-1p1:
   groups: ['Meta','UMA']
   image_file: Images/Meta/uma-s-1p1.sif
   container_definition: Definitions/Meta/UMA.def
-  build_options: {'HF_AUTH':True,'checkpoint_file':'checkpoints/uma-s-1p1.pt', 'model_name':'uma-s-1p1'}
+  build_options: {'HF_AUTH':True,'checkpoint_file':'uma-s-1p1.pt', 'model_name':'uma-s-1p1'}
   CASTEP: True
   available_tasks: ["oc20", "omat", "omol" ,"odac", "omc"]
 
@@ -28,7 +28,7 @@ uma-m-1p1:
   groups: ['Meta','UMA']
   image_file: Images/Meta/uma-m-1p1.sif
   container_definition: Definitions/Meta/UMA.def
-  build_options: {'HF_AUTH':True,'checkpoint_file':'checkpoints/uma-m-1p1.pt', 'model_name':'uma-m-1p1'}
+  build_options: {'HF_AUTH':True,'checkpoint_file':'uma-m-1p1.pt', 'model_name':'uma-m-1p1'}
   CASTEP: True
   available_tasks: ["oc20", "omat", "omol" ,"odac", "omc"]
 

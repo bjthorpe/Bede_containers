@@ -68,9 +68,9 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     }
 
     Meta_UMA = {
-        "uma-s-1p1": "uma-s-1p1",
-        "uma-s-1": "uma-s-1",
-        "uma-m-1p1": "uma-m-1p1",
+        "uma-s-1p1": f"{models_dir}/uma-s-1p1.pt",
+        "uma-s-1": f"{models_dir}/uma-s-1.pt",
+        "uma-m-1p1": f"{models_dir}/uma-m-1p1.pt",
     }
 
     MatterSim = {"mattersim": f"MatterSim-v1.0.0-5M.pth"}
@@ -202,7 +202,8 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     elif ML_model_option_lower in Meta_UMA:
         try:
-            from fairchem.core import pretrained_mlip, FAIRChemCalculator
+            from fairchem.core.units.mlip_unit import load_predict_unit
+            from fairchem.core import FAIRChemCalculator
         except:
             raise ModuleNotFoundError('fairchem (V2.13) cannot be found, please install.')
         
@@ -218,8 +219,12 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
             print(f'This must be one of: {available_tasks}.')
             sys.exit(11)
 
-        predictor = pretrained_mlip.get_predict_unit(
-            Meta_UMA[ML_model_option_lower], device=kwargs["device"]
+        # predictor = pretrained_mlip.get_predict_unit(
+        #     Meta_UMA[ML_model_option_lower], device=kwargs["device"],
+        #     cache_dir='/Models/hub'
+        # )
+        predictor = load_predict_unit(
+            Meta_UMA[ML_model_option_lower], device=kwargs["device"],
         )
         ASE_Calculator = FAIRChemCalculator(predictor, task_name=kwargs["task"])
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -354,20 +359,6 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     # 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     elif ML_model_option_lower in SEVENNET_single:
-        try:
-            from sevenn.calculator import SevenNetCalculator
-        except:
-            raise ModuleNotFoundError('SevenNet cannot be found, please install.')
-    
-        ASE_Calculator = SevenNetCalculator(model=SEVENNET_single[ML_model_option],device=kwargs['device'])
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # END
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    else:
-        print(f"Unknown module {ML_model_option}")
-        sys.exit(1)
-    return ASE_Calculator
-EVENNET_single:
         try:
             from sevenn.calculator import SevenNetCalculator
         except:
