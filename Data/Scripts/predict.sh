@@ -35,6 +35,13 @@ while getopts "hM:D:T:" opt; do
     esac
 done
 
+if [ "$#" -gt 0 ]; then
+  echo "${!#}"
+else
+  echo "No positional arguments provided at least the seed number and model name are required"
+  exit 1
+fi
+
 if [ -z "$ML_MODEL" ]; then
     echo "Error: Model_name is required" >&2
     exit 1
@@ -45,5 +52,4 @@ if [ -z "$ML_TOOLKIT_HOME" ]; then
     echo " please ensure you have installed ML-toolkit though pip and run the 'install-ml-toolkit' command." >&2
     exit 1
 fi
-
-ml-toolkit run ${ML_MODEL} python ${ML_TOOLKIT_HOME}/Scripts/ML_file.py --device=${DEVICE} ${TASK} ${ML_MODEL} $2
+ml-toolkit run ${TASK} ${ML_MODEL}  python ${ML_TOOLKIT_HOME}/Scripts/ML_file.py --device=${DEVICE} ${TASK} ${ML_MODEL} "${!#}"
