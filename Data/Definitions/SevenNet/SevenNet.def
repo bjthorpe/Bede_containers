@@ -25,8 +25,22 @@ From: ubuntu:24.04
     echo "****************************************************"
 
 %startscript
+    set -eu
     # send stdout and stderr to toolkit home 
-    exec > {{ toolkit_home }}/logs/{{ model_name }}.out 2> {{ toolkit_home }}/logs/{{ model_name }}.err
+    if [ -z "$OUTPUT_FILE" ]; then
+        OUTPUT_FILE=/mnt/b8e9a3be-9bf1-423d-aeaa-72a35a7648c8/Bede_containers/Data/logs/SevenNet-Omni
+        echo "writing output to ${OUTPUT_FILE}">&2
+
+    elif ! touch "${OUTPUT_FILE}.out" 2>/dev/null; then
+            echo "Cannot write to $OUTPUT_FILE" >&2
+            OUTPUT_FILE=/mnt/b8e9a3be-9bf1-423d-aeaa-72a35a7648c8/Bede_containers/Data/logs/SevenNet-Omni
+            echo "writing output to ${OUTPUT_FILE} instead" >&2
+    else
+        echo "writing output to ${OUTPUT_FILE}" >&2
+    fi
+
+    # force std out/stderr to go to $OUTPUT_FILE not ~/.apptainer
+    exec > ${OUTPUT_FILE}.out 2> ${OUTPUT_FILE}.err
     # start with sensible defaults
     LISTEN_PORT=5000
     TIMEOUT_OVERWRITE=60
@@ -35,7 +49,7 @@ From: ubuntu:24.04
     MODEL={{ model_name }}
 
     # go through arguments and set variables as appropriate
-    while getopts "hp:t:N:" opt; do
+    while getopts "hp:t:N:T:" opt; do
         case ${opt} in
         h)
             echo "Usage: $0 [OPTIONS]"
@@ -43,6 +57,7 @@ From: ubuntu:24.04
             echo "  -p PORT_NUM    Set TCP port number, must be greater than 1024 (default: 5000)"
             echo "  -t TIMEOUT   Server timeout in seconds, must be greater than 0 (default: 60)"
             echo "  -N NUM_SERVERS   Number of python servers to spawn, must be greater than 0 (default: 1)"
+            echo "  -T TASK   Task to perfrom, for use with multi-modal models"
             exit 0
             ;;
         p)
@@ -70,13 +85,16 @@ From: ubuntu:24.04
                 exit 11
             fi
         ;;
+        T)
+            TASK=${OPTARG}
+        ;;
         ?)
         echo "Invalid option: -${OPTARG}." >&2
         exit 1
         ;;
         esac
     done
-
+    
     MAX_CONNS=$(($NUM_SERVERS*3))
 
     # Start the python environment
@@ -97,7 +115,7 @@ From: ubuntu:24.04
     s=1
     while [ $s -le $NUM_SERVERS ]; do
         # Create a python server
-	python3 /prediction/ML_server.py -P $(($LISTEN_PORT+$s)) -L info -T ${TIMEOUT_OVERWRITE} -M {{ model_name }} &
+	python3 /prediction/ML_server.py -P $(($LISTEN_PORT+$s)) -L info -T ${TIMEOUT_OVERWRITE} -M {{ model_name }} --task $TASK &
 	# Add it to the HAProxy config (in tmp)
 	echo "    server p${s} 127.0.0.1:$(($LISTEN_PORT+$s))" >> /tmp/HAProxy_${LISTEN_PORT}.cfg
 	s=$((s+1))
