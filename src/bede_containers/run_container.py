@@ -336,12 +336,12 @@ def format_command(
         if CMD_Options['task'] !='':
             cmd = cmd + f' --task {CMD_Options['task'] }'
 
-        if CMD_Options['writable']:
-            sand_flag = " --writable "
-        else:    
-            sand_flag = ""
-
         image_exists(image)
+        if Path(image).is_dir():
+            write_flag = " --writable "        
+        else:    
+            write_flag = ""
+
         # apptainer shell and apptainer exec share the same cmd options so I just combined the two
         if CMD_Options['interactive']:
             msg = "Running in interactive mode"
@@ -350,7 +350,7 @@ def format_command(
             msg = "Running"
             apptainer_cmd = "exec"
 
-        apptainer_command = f"apptainer {apptainer_cmd}{enc_flag}{sand_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
+        apptainer_command = f"apptainer {apptainer_cmd}{enc_flag}{write_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {cmd}"
 
     elif operation == "build" or operation == "load":
         if CMD_Options['writable']:
@@ -359,13 +359,17 @@ def format_command(
         else:    
             sand_flag = ""
             msg = "Building"
-
+        # force overwrite of existing build if requested
+        if CMD_Options['force']:
+            force='-F'
+        else:
+            force=''
         # Make parent directory(s) of image file if it does not exist
         Path(Container.image_file).parent.mkdir(parents=True, exist_ok=True)
         build_options_str = create_build_options(Container.build_options)
 
         apptainer_command = (
-            f"apptainer build{build_options_str}{sand_flag}{enc_flag}{gpu_flag}{image} {definition}"
+            f"apptainer build{force}{build_options_str}{sand_flag}{enc_flag}{gpu_flag}{image} {definition}"
         )
     # convert existing container to/from editable sandbox
     elif operation == "convert":
@@ -400,6 +404,10 @@ def format_command(
     elif operation == "start":
         msg = "Starting"
         image_exists(image)
+        if Path(image).is_dir():
+            write_flag = " --writable "        
+        else:    
+            write_flag = ""
         # check file for stdout/stderr is writable
         if Container.output_file == '':
             Container.output_file = f'{Path.cwd}/{model_name}'
@@ -428,7 +436,7 @@ def format_command(
             cmd = f"-p {CMD_Options['port']} -t {CMD_Options['timeout']} -N {CMD_Options['num_servers']} {task}"
         else:
             cmd =''
-        apptainer_command = f"apptainer instance start --env OUTPUT_FILE={Container.output_file}/{model_name} {enc_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name} {cmd}"
+        apptainer_command = f"apptainer instance start --env OUTPUT_FILE={Container.output_file}/{model_name} {enc_flag}{write_flag}{no_mnt_flag}{bind_opt}{gpu_flag}{image} {model_name} {cmd}"
 
     elif operation == "stop":
         msg = "Stopping"
@@ -468,7 +476,6 @@ def parse_cmd_arguments():
     run_parser.add_argument("model_name", type=str, help="Name of Model to use")
 
     run_parser.add_argument("cmd", type=str, nargs=argparse.REMAINDER, help="Command(s) to run")
-    run_parser.add_argument("--writable", action="store_true", help="Run container as an editable sandbox, useful for dev/debugging. Needs to be built with --writable first.")
     run_parser.add_argument("--interactive", action="store_true", help="run in interactive mode, ignores extra commands")
     run_parser.add_argument("-T","--task", type=str, default='', help="Task to perform, required for all Meta UMA and selected SevenNet models, ignored by all others. See the docs for valid options.")
 
@@ -484,7 +491,8 @@ def parse_cmd_arguments():
 
     build_parser.add_argument("model_name", type=str, help="Name of Model to use")
     build_parser.add_argument("--writable", action="store_true", help="Build container as an editable sandbox, useful for dev/debugging. Run with --writable to freely edit the container.")   
-    
+    build_parser.add_argument("--force", action="store_true", help="Force overwrite of existing container.")
+
     # sub-parser for the load operation
     load_parser = subparsers.add_parser(
         "load", help="Build the Container, exactly equivalent to build"
@@ -637,11 +645,6 @@ def main() -> int:
         # just list all detected containers then exit
         list_containers(Containers, args.group,args.long_desc)
         return 0
-    # set flags for writable and interactive containers
-    if not hasattr(args,'writable'):
-        args.writable=False
-
-    writable=args.writable
 
     if not hasattr(args,'interactive'):
         args.interactive=False
