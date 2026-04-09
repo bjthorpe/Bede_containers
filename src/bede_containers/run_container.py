@@ -14,7 +14,9 @@ import sys
 import socket
 import time
 
-def wait_for_port(host, port, retries=5, delay=10):
+def wait_for_port(host, port, retries=3, delay=5):
+    print(f"waiting for python server to start")
+    time.sleep(delay)
     for attempt in range(1, retries + 1):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.settimeout(1)
@@ -511,9 +513,9 @@ def parse_cmd_arguments():
 
     start_parser.add_argument("model_name", type=str, help="Name of Model to use")    
     start_parser.add_argument("-p","--port", type=int, default=None, help="Used with CASTEP, tcp network port, if provided ml-toolkit will check for network traffic on the given tcp port once the container has started. Used to verify a server has started correctly. ")    
-    start_parser.add_argument("-t","--timeout", type=int, default=10, help="time in seconds before server times out. Default: 10")
+    start_parser.add_argument("-t","--timeout", type=int, default=5, help="time in seconds before server times out. Default: 10")
     start_parser.add_argument("-n","--num_servers", type=int, default=1, help="Used with CASTEP, number of python servers to spawn. Default: 1")                       
-    start_parser.add_argument("-r","--num_retry", type=int, default=5, help="number of times to retry when waiting for python server. Default: 5")
+    start_parser.add_argument("-r","--num_retry", type=int, default=3, help="number of times to retry when waiting for python server. Default: 5")
     start_parser.add_argument("-T","--task", type=str, default='', help="Task to perform, required for all Meta UMA and selected SevenNet models, ignored by all others. See the docs for valid options")
 
     # sub-parser for the stop operation
