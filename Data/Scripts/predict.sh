@@ -52,4 +52,4 @@ if [ -z "$ML_TOOLKIT_HOME" ]; then
     echo " please ensure you have installed ML-toolkit though pip and run the 'install-ml-toolkit' command." >&2
     exit 1
 fi
-ml-toolkit run ${TASK} ${ML_MODEL}  python ${ML_TOOLKIT_HOME}/Scripts/ML_file.py --device=${DEVICE} ${TASK} ${ML_MODEL} "${!#}"
+ml-toolkit run ${ML_MODEL}  python ${ML_TOOLKIT_HOME}/Scripts/ML_file.py --device=${DEVICE} ${TASK} ${ML_MODEL} "${!#}"

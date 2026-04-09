@@ -332,9 +332,6 @@ def format_command(
             print("error: the following arguments are required: cmd")
             sys.exit(12)
         cmd = " ".join(CMD_Options['cmd'])
-    # pass task option to container if required by the model
-        if CMD_Options['task'] !='':
-            cmd = cmd + f' --task {CMD_Options['task'] }'
 
         image_exists(image)
         if Path(image).is_dir():
@@ -477,7 +474,6 @@ def parse_cmd_arguments():
 
     run_parser.add_argument("cmd", type=str, nargs=argparse.REMAINDER, help="Command(s) to run")
     run_parser.add_argument("--interactive", action="store_true", help="run in interactive mode, ignores extra commands")
-    run_parser.add_argument("-T","--task", type=str, default='', help="Task to perform, required for all Meta UMA and selected SevenNet models, ignored by all others. See the docs for valid options.")
 
     # sub-parser for the convert operation
     conv_parser = subparsers.add_parser("convert", help=f"Convert existing Model Container to/from editable/static, useful for development as it saves having to re-build containers when making small changes.")
