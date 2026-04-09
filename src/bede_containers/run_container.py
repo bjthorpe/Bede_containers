@@ -503,7 +503,10 @@ def parse_cmd_arguments():
     list_parser = subparsers.add_parser("list", help="List available containers")
 
     list_parser.add_argument(
-        "--group", type=str, default="", help="optional group of containers to list"
+        "-g","--group", type=str, default="", help="optional group of containers to list"
+    )
+    list_parser.add_argument(
+        "-m","--model_name", type=str, default="", help="optional group of containers to list"
     )
     list_parser.add_argument(
         "--long_desc","-l", action="store_true", help="Output full descriptions, default is truncated to 80 characters."
@@ -569,7 +572,7 @@ def find_in_list(query, items, cutoff=0.8):
 
     return False
 
-def list_containers(Containers: dict, group: str = "",long_desc=False):
+def list_containers(Containers: dict, group: str = "",long_desc=False,model_name:str =''):
     '''
     Print filtered list of containers to stdout, 
     formatted for readability
@@ -587,15 +590,31 @@ def list_containers(Containers: dict, group: str = "",long_desc=False):
     cmd_output("Currently available containers: ",length=msg_length)
     cmd_output("*",sep="",length=msg_length)
     print(f"Name:          | Groups:    | Description:")
-    cmd_output("-",sep="",sentinel='-',length=msg_length)    
-    for key, value in Containers.items():
-        if find_in_list(group, value.groups) or group == "":
+    cmd_output("-",sep="",sentinel='-',length=msg_length)
+    # go through all models
+    if model_name=="":
+        for key, value in Containers.items():
+            if find_in_list(group, value.groups) or group == "":
+                if long_desc:
+                    desc = value.description
+                else:
+                    desc = truncate_string(value.description,80)
+                output = f"{key:<15} | {', '.join(value.groups)} | {desc}"
+                print(output)
+    # list info for just one model
+    elif model_name in Containers:
+        if find_in_list(group, Containers[model_name].groups) or group == "":
             if long_desc:
-                desc = value.description
+                desc = Containers[model_name].description
             else:
-                desc = truncate_string(value.description,80)
-            output = f"{key:<15} | {', '.join(value.groups)} | {desc}"
-            print(output)
+                desc = truncate_string(Containers[model_name].description,80)
+            output = f"{model_name:<15} | {', '.join(Containers[model_name].groups)} | {desc}"
+            print(output)       
+    
+    else:
+        #model not found
+        print(f"There is no model {model_name} available")
+    return
 
 def config_to_log(config:ContainerConfig,model_name:str):
     cmd_output(f"Loading Container: {model_name}",sentinel='-',only_log=True)
@@ -641,7 +660,7 @@ def main() -> int:
 
     if args.operation.lower() == "list":
         # just list all detected containers then exit
-        list_containers(Containers, args.group,args.long_desc)
+        list_containers(Containers, args.group,args.long_desc, args.model_name)
         return 0
 
     if not hasattr(args,'interactive'):
