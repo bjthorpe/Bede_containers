@@ -20,7 +20,22 @@ From: python:3.11
 # make blank dir in container for mounting toolkit_home to for use with --sandbox
     mkdir -p {{ toolkit_home }}
 %startscript
-    set -e
+    set -eu
+    # send stdout and stderr to toolkit home 
+    if [ -z "$OUTPUT_FILE" ]; then
+        OUTPUT_FILE={{ toolkit_home }}/logs/{{ model_name }}
+        echo "writing output to ${OUTPUT_FILE}">&2
+
+    elif ! touch "${OUTPUT_FILE}.out" 2>/dev/null; then
+            echo "Cannot write to $OUTPUT_FILE" >&2
+            OUTPUT_FILE={{ toolkit_home }}/logs/{{ model_name }}
+            echo "writing output to ${OUTPUT_FILE} instead" >&2
+    else
+        echo "writing output to ${OUTPUT_FILE}" >&2
+    fi
+
+    # force std out/stderr to go to $OUTPUT_FILE not ~/.apptainer
+    exec > ${OUTPUT_FILE}.out 2> ${OUTPUT_FILE}.err
     # start with sensible defaults
     LISTEN_PORT=5000
     TIMEOUT_OVERWRITE=60

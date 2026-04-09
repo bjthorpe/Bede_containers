@@ -36,6 +36,22 @@ From: ubuntu:24.04
     echo "****************************************************"
 
 %startscript
+    set -eu
+    # send stdout and stderr to toolkit home 
+    if [ -z "$OUTPUT_FILE" ]; then
+        OUTPUT_FILE={{ toolkit_home }}/logs/{{ model_name }}
+        echo "writing output to ${OUTPUT_FILE}">&2
+
+    elif ! touch "${OUTPUT_FILE}.out" 2>/dev/null; then
+            echo "Cannot write to $OUTPUT_FILE" >&2
+            OUTPUT_FILE={{ toolkit_home }}/logs/{{ model_name }}
+            echo "writing output to ${OUTPUT_FILE} instead" >&2
+    else
+        echo "writing output to ${OUTPUT_FILE}" >&2
+    fi
+
+    # force std out/stderr to go to $OUTPUT_FILE not ~/.apptainer
+    exec > ${OUTPUT_FILE}.out 2> ${OUTPUT_FILE}.err
     # send stdout and stderr to toolkit home 
     exec > {{ toolkit_home }}/logs/{{ model_name }}.out 2> {{ toolkit_home }}/logs/{{ model_name }}.err
     # start with sensible defaults
