@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 import textwrap
 
-def cmd_output(message:str,length=80,sentinel='*',log=False,sep=" "):
+def cmd_output(message:str,length=80,sentinel='*',only_log=False,sep=" "):
     '''
     useful function for formatting logging/cmd output
     Params:
@@ -15,13 +15,13 @@ def cmd_output(message:str,length=80,sentinel='*',log=False,sep=" "):
     sentinel - character used to fill majority of line
     sep - character used to create space either side of the message
     length - max length of the outputted message
-    log - flag to set if output goes to just the log or both log and stdout
+    only_log - flag to set if output goes to just the log or both log and stdout
     '''
     message = sep + message + sep
     messages=textwrap.wrap(message,length)
     for msg in messages:
         result = f"{msg:{sentinel}^{length}}"
-        if log:
+        if only_log:
             logging.info(result)
         else:
             logging.info(result)

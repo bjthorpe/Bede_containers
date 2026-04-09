@@ -131,10 +131,10 @@ def check_container_config(config_files: list):
     """
     Containers = {}
     toolkit_home = get_toolkit_home()
-    cmd_output("Checking config files.",log=True,sentinel=" ")
+    cmd_output("Checking config files.",only_log=True,sentinel=" ")
     for conf_file in config_files:
         with open(conf_file, "r") as file:
-            cmd_output(f"Reading config from file: {file.name}",sentinel='-',log=True)
+            cmd_output(f"Reading config from file: {file.name}",sentinel='-',only_log=True)
             all_containers = yaml.load(file, Loader=DuplicateKeyDetector)
 
         for key in all_containers:
@@ -409,15 +409,15 @@ def format_command(
         if Container.output_file == '':
             Container.output_file = f'{Path.cwd}/{model_name}'
         if is_writable(Container.output_file):
-            cmd_output('*',sep='',log=True)
-            cmd_output(f"Container output can be found in {Container.output_file}.out and {Container.output_file}.err",log=True)
-            cmd_output('*',sep='',log=True)
+            cmd_output('*',sep='',only_log=True)
+            cmd_output(f"Container output can be found in {Container.output_file}.out and {Container.output_file}.err",only_log=True)
+            cmd_output('*',sep='',only_log=True)
             Container.output_file = f'{toolkit_home}/logs/{model_name}'
         else:
-            cmd_output('*',sep='',log=True)
-            cmd_output(f"warning: output directory {Container.output_file} is not writable",log=True)
-            cmd_output(f"output will default to {toolkit_home}/logs/{model_name}",log=True)
-            cmd_output('*',sep='',log=True)
+            cmd_output('*',sep='',only_log=True)
+            cmd_output(f"warning: output directory {Container.output_file} is not writable",only_log=True)
+            cmd_output(f"output will default to {toolkit_home}/logs/{model_name}",only_log=True)
+            cmd_output('*',sep='',only_log=True)
 
         # containers for use with CASTEP have a slightly different startup command.
         if Container.CASTEP:
@@ -596,7 +596,7 @@ def list_containers(Containers: dict, group: str = "",long_desc=False):
             print(output)
 
 def config_to_log(config:ContainerConfig,model_name:str):
-    cmd_output(f"Loading Container: {model_name}",sentinel='-',log=True)
+    cmd_output(f"Loading Container: {model_name}",sentinel='-',only_log=True)
 
     for key, value in config.__dict__.items():
         logging.info(f"{key}: {value}")
