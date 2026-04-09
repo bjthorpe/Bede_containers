@@ -7,7 +7,7 @@ from dacite import from_dict
 from .check_yaml import DuplicateKeyDetector, DuplicateKeyError
 from .check_yaml import is_valid_name
 from .check_URI import check_container_def
-from .util_functions import create_build_options, cmd_output, which, get_toolkit_home
+from .util_functions import create_build_options, cmd_output, which, get_toolkit_home,check_model_implemented
 from .version import __version__
 import logging
 import sys
@@ -656,6 +656,7 @@ def main() -> int:
             f"no model named {model_name} was found in a config file.\n \
                             Model must be one of \n{list(Containers.keys())}"
         )
+    check_model_implemented(model_name)
     config_to_log(Containers[model_name],model_name)
     # check to see if Apptainer is available on the system path
     if which('apptainer') is None:

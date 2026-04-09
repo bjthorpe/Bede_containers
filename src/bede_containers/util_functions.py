@@ -109,3 +109,37 @@ def get_toolkit_home():
         sys.exit(1)
     
     return toolkit_home
+
+def check_model_implemented(model_name):
+    '''
+    Function to allow you to have models 
+    listed but not implemented. Instead 
+    provides printed output explaining why.
+
+    This was originally put in for EquFlash
+    which is listed on Matbench discovery but
+    The developers did not provide a checkpoint file.
+
+    So we can not actually implement it and instead 
+    we print a message to explain.
+
+    It is also useful for situations where you 
+    have a known bug or want to create some placeholder 
+    for future use.
+    '''
+    match model_name.lower():
+        case 'equflash':
+            cmd_output("",sep="*")
+            cmd_output("Unfortunately EquFlash is not available at this time.",sentinel='')
+            cmd_output("The Developers have chosen not to release a pretrained checkpoint.",sentinel='')
+            cmd_output("All we have to go on is it's a scaled-up model derived from SevenNet-0",sentinel='') 
+            cmd_output("accelerated with FlashTP.\n",sentinel='')
+            cmd_output("-",sep="-",sentinel='-')
+            cmd_output("Fortunately we have implemented versions of all SevenNet models with flash.",sentinel='')
+            cmd_output("Thus we suggest you start with those. These are listed as MODELNAME-Flash",sentinel='')
+            cmd_output("(e.g. SevenNet-0-Flash) and are in the flash group when using ml-toolkit list.",sentinel='')
+            cmd_output("We acknowledge these are not 100 percent equivalent but its the best we can do.",sentinel='')
+            cmd_output("",sep="*")
+            sys.exit(0)
+        case _:
+            return
