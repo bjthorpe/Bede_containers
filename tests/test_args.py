@@ -7,7 +7,7 @@ from bede_containers.run_container import check_container_config
 from bede_containers.util_functions import get_toolkit_home
 from pathlib import Path
 import subprocess
-
+DATA_DIR = Path(__file__).parent / "test_configs"
 @pytest.fixture(scope='module')
 def build_test_container():
     # cleanup any potential old test containers
@@ -100,7 +100,8 @@ def test_build_and_run(monkeypatch):
 
 def test_unknown_operation():
 # check for that we raise an error if operation is unknown
-    containers = check_container_config(["tests/test_configs/valid.yaml"])
+    
+    containers = check_container_config([f"{DATA_DIR}/valid.yaml"])
     with pytest.raises(CMD_FormatError):
         cmd = {}
         format_command("unknown","test",containers['Example_Model1'],cmd)
@@ -111,7 +112,7 @@ def test_config_file_flag(monkeypatch,build_test_container_2):
     '''
     # run main program subbing in new cmd arguments
     prog = sys.argv[0]
-    conf_file = "tests/test_configs/valid.yaml"
+    conf_file = f"{DATA_DIR}/valid.yaml"
     monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Example_Model1","hostname"])
     return_code = main()
     assert return_code == 0
@@ -122,7 +123,7 @@ def test_config_file_flag_dir(monkeypatch,build_test_container_2):
     '''
     # run main program subbing in new cmd arguments
     prog = sys.argv[0]
-    conf_file = "tests/test_configs/multiple_files_test/"
+    conf_file = f"{DATA_DIR}/multiple_files_test/"
 # use model denied in valid.yaml
     monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Example_Model1","hostname"])
     return_code = main()
@@ -138,7 +139,7 @@ def test_model_name_flag(monkeypatch):
     '''
     # run main program subbing in new cmd arguments
     prog = sys.argv[0]
-    conf_file = "tests/test_configs/valid.yaml"
+    conf_file = f"{DATA_DIR}/valid.yaml"
     monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Test","hostname"])
     with pytest.raises(ValueError):
         return_code = main()

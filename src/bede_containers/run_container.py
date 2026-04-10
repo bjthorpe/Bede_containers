@@ -488,8 +488,8 @@ def parse_cmd_arguments():
     )
 
     build_parser.add_argument("model_name", type=str, help="Name of Model to use")
-    build_parser.add_argument("--writable", action="store_true", help="Build container as an editable sandbox, useful for dev/debugging. Run with --writable to freely edit the container.")   
-    build_parser.add_argument("--force", action="store_true", help="Force overwrite of existing container.")
+    build_parser.add_argument("--writable", action="store_true", help="Build container as an editable sandbox, useful for dev/debugging as it enables you to freely edit the container.")   
+    build_parser.add_argument("-f","--force", action="store_true", help="Force overwrite of existing container.")
 
     # sub-parser for the load operation
     load_parser = subparsers.add_parser(
@@ -724,3 +724,6 @@ def main() -> int:
     # return code is used by pytest to check code ran successfully
         return proc.returncode
     return 0
+
+if __name__ == "__main__":
+    main()

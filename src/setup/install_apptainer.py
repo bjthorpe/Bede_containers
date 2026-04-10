@@ -147,3 +147,5 @@ def install_apptainer():
     build_apptainer(apptainer_version=apptainer_version,prefix=install_prefix)
     setup_environment(prefix=install_prefix)
     verify_install(prefix=install_prefix)
+if __name__ == "__main__":
+    install_apptainer()

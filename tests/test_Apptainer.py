@@ -20,7 +20,7 @@ def test_Apptainer():
 
 
 # Skip test if using pytest with --no_GPU flag
-@pytest.mark.GPU
+#@pytest.mark.GPU
 def test_GPU():
     """
     Test to check Apptainer installation is working correctly with a GPU by
