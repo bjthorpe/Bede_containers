@@ -14,19 +14,42 @@ import sys
 import socket
 import time
 
-def wait_for_port(host, port, retries=3, delay=5):
+def is_server_ready(host, port, message="ping", timeout=2):
+    ''' 
+    Function to send special health check message 
+    to server to check that it is indeed ready to go.
+    '''
+    try:
+        with socket.create_connection((host, port), timeout=timeout) as sock:
+        # byte string in hex used for health check
+        # For health checking we send the string CHECK
+        # to the TCP server and expects the (string) response ALIVE.
+        # N.B. 05000000 is 5 in an unsigned integer in little enidian 
+        # specifying length of sent message and 434845434B is CHECK in hex.
+            magic_string = bytes.fromhex('05000000434845434B')
+            sock.sendall(magic_string)
+            sock.settimeout(timeout)
+            response = sock.recv(1024)
+            return len(response) > 0
+    except (socket.timeout, ConnectionRefusedError, OSError):
+        return False
+
+def wait_for_server(host, port, retries=5, delay=10):
+    '''
+    The python server can be annoyingly slow to start up.
+    This function waits for it to start and retries a 
+    fixed number of times before simply giving up.
+    '''
     print(f"waiting for python server to start")
     time.sleep(delay)
     for attempt in range(1, retries + 1):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.settimeout(1)
-            if sock.connect_ex((host, port)) == 0:
-                print(f"Python Server is ready on {port}")
-                return True
-
-        print(f"Attempt {attempt} of {retries}: Python Server not ready")
-        print(f"waiting for {delay} seconds before retry")
-        time.sleep(delay)
+        if is_server_ready(host, port+1, message="CHECK", timeout=2):
+            print(f"Python Server is ready on {port}")
+            return True
+        else:
+            print(f"Attempt {attempt} of {retries}: Python Server not ready")
+            print(f"waiting for {delay} seconds before retry")
+            time.sleep(delay)
 
     return False
 
@@ -715,7 +738,7 @@ def main() -> int:
         
         if args.operation == 'start':
             if args.port != None:
-                success =  wait_for_port("127.0.0.1",args.port,args.num_retry,args.timeout)
+                success =  wait_for_server("127.0.0.1",args.port,args.num_retry,args.timeout)
                 if not success:
                     print(f"ERROR: Sever on port {args.port} does not appear to have started:")
                     print(f"ERROR: There is clearly an issue so stopping container")
