@@ -68,11 +68,11 @@ def create_build_options(options: dict) -> str:
                         options['HF_AUTH'] = line
                     break
                 
-        build_args_str = "".join([f" --build-arg {k}={options[k]}" for k in options])
+        build_args_str = "".join([f" --build-arg {k}='{options[k]}'" for k in options])
     else:
         build_args_str = ""
     # always add toolkit_home to build args
-    build_args_str = build_args_str + f" --build-arg toolkit_home={toolkit_home}"
+    build_args_str = build_args_str + f" --build-arg toolkit_home='{toolkit_home}'"
     return build_args_str
 
 
@@ -135,7 +135,7 @@ def check_model_implemented(model_name):
             cmd_output("All we have to go on is it's a scaled-up model derived from SevenNet-0",sentinel='') 
             cmd_output("accelerated with FlashTP.\n",sentinel='')
             cmd_output("-",sep="-",sentinel='-')
-            cmd_output("Fortunately we have implemented versions of all SevenNet models with flash.",sentinel='')
+            cmd_output("Fortunately we have implemented versions of all SevenNet models with FlashTP.",sentinel='')
             cmd_output("Thus we suggest you start with those. These are listed as MODELNAME-Flash",sentinel='')
             cmd_output("(e.g. SevenNet-0-Flash) and are in the flash group when using ml-toolkit list.",sentinel='')
             cmd_output("We acknowledge these are not 100 percent equivalent but its the best we can do.",sentinel='')
