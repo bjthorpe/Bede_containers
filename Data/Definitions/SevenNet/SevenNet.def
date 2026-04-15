@@ -28,12 +28,12 @@ From: ubuntu:24.04
     set -eu
     # send stdout and stderr to toolkit home 
     if [ -z "$OUTPUT_FILE" ]; then
-        OUTPUT_FILE=/mnt/b8e9a3be-9bf1-423d-aeaa-72a35a7648c8/Bede_containers/Data/logs/SevenNet-Omni
+        OUTPUT_FILE={{ toolkit_home }}/logs/SevenNet-Omni
         echo "writing output to ${OUTPUT_FILE}">&2
 
     elif ! touch "${OUTPUT_FILE}.out" 2>/dev/null; then
             echo "Cannot write to $OUTPUT_FILE" >&2
-            OUTPUT_FILE=/mnt/b8e9a3be-9bf1-423d-aeaa-72a35a7648c8/Bede_containers/Data/logs/SevenNet-Omni
+            OUTPUT_FILE={{ toolkit_home }}/logs/SevenNet-Omni
             echo "writing output to ${OUTPUT_FILE} instead" >&2
     else
         echo "writing output to ${OUTPUT_FILE}" >&2
