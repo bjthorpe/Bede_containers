@@ -1,0 +1,33 @@
+task             = geomopt
+opt_strategy     = SPEED
+
+spin_treatment   = none
+geom_method      = LBFGS
+geom_max_iter    = 100
+
+rand_seed        = 654521
+write_checkpoint = NONE
+write_bib        = FALSE
+write_cst_esp    = FALSE
+write_bands      = FALSE
+write_cell_structure = TRUE
+
+%block devel_code
+
+  PP=T
+
+  PP:
+
+    # Run external script method
+    EXT=T
+
+    # Don't delete extra filed generated for communication with external script
+    EXT_CLEANUP=F
+
+    # Command used to call the external script used to predict energy/stress/forces
+    EXTCALL: $ML_TOOLKIT_HOME/Scripts/predict.sh -M {MODEL_NAME} {TASK} :ENDEXTCALL
+
+  ENDPP:
+
+%endblock devel_code
+
