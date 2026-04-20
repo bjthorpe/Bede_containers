@@ -104,34 +104,7 @@ def test_unknown_operation():
     containers = check_container_config([f"{DATA_DIR}/valid.yaml"])
     with pytest.raises(CMD_FormatError):
         cmd = {}
-        format_command("unknown","test",containers['Example_Model1'],cmd)
-
-def test_config_file_flag(monkeypatch,build_test_container_2):
-    '''
-    check config_file flag works with single file
-    '''
-    # run main program subbing in new cmd arguments
-    prog = sys.argv[0]
-    conf_file = f"{DATA_DIR}/valid.yaml"
-    monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Example_Model1","hostname"])
-    return_code = main()
-    assert return_code == 0
-
-def test_config_file_flag_dir(monkeypatch,build_test_container_2):
-    '''
-    check config_file flag works with a directory
-    '''
-    # run main program subbing in new cmd arguments
-    prog = sys.argv[0]
-    conf_file = f"{DATA_DIR}/multiple_files_test/"
-# use model denied in valid.yaml
-    monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Example_Model1","hostname"])
-    return_code = main()
-    assert return_code == 0
-# now try different model defined in valid2.yaml
-    monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Example_Model2","hostname"])
-    return_code = main()
-    assert return_code == 0   
+        format_command("unknown","test",containers['Example_Model1'],cmd)   
 
 def test_model_name_flag(monkeypatch):
     '''
@@ -139,7 +112,6 @@ def test_model_name_flag(monkeypatch):
     '''
     # run main program subbing in new cmd arguments
     prog = sys.argv[0]
-    conf_file = f"{DATA_DIR}/valid.yaml"
-    monkeypatch.setattr("sys.argv", [prog,f"--config_file={conf_file}", "run", "Test","hostname"])
-    with pytest.raises(ValueError):
+    monkeypatch.setattr("sys.argv", [prog, "run", "Test","hostname"])
+    with pytest.raises(SystemExit):
         return_code = main()

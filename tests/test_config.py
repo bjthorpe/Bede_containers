@@ -146,7 +146,7 @@ def test_format_command(build_test_container):
     
     valid_commands = [
         f"apptainer exec --bind {toolkit_home}  --nv {toolkit_home}/Images/Example_Model1.sif hostname",
-        f"apptainer build --build-arg toolkit_home={toolkit_home} --nv {toolkit_home}/Images/Example_Model1.sif docker://alpine:latest",
+        f"apptainer build --build-arg toolkit_home='{toolkit_home}' --nv {toolkit_home}/Images/Example_Model1.sif docker://alpine:latest",
         f"apptainer instance start --env OUTPUT_FILE={Path.cwd()}/Test  --bind {toolkit_home}  --nv {toolkit_home}/Images/Example_Model1.sif Test ",
         f"apptainer instance stop Test"
     ]

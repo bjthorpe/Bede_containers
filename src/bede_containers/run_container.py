@@ -479,20 +479,10 @@ def format_command(
     cmd_output('*',sep='')
     return apptainer_command
 
-def get_ModelNames(toolkit_home,filename='Available_Models.txt'):
-    '''
-    get list of valid model names from master file.
-    '''
-    with open(f"{toolkit_home}/{filename}", "r") as f:
-        ModelNames = [line.strip() for line in f]
-    return ModelNames
-
-def parse_cmd_arguments():
+def parse_cmd_arguments(Model_names):
     """
     Function to handle parsing of command line arguments
     """
-    toolkit_home = get_toolkit_home()
-    Model_names=get_ModelNames(toolkit_home,filename='Available_Models.txt')
 
     parser = argparse.ArgumentParser(
         description="A CLI tool for easily running AI/ML containers on Bede."
@@ -563,9 +553,6 @@ def parse_cmd_arguments():
     stop_parser.add_argument("model_name", choices=Model_names, help="Name of Model to use")
 
     # other arguments for main parser
-    parser.add_argument(
-        "--config_file", type=str, default=None, help="path to Config file for Models"
-    )
     parser.add_argument(
         "--debug",
         action="store_true",
@@ -681,19 +668,16 @@ def check_task(task,available_tasks,model_name):
 ###############################################################################
 def main() -> int:
     toolkit_home = get_toolkit_home()
-    #Model_names=get_ModelNames(toolkit_home,filename='Available_Models.txt')
-
-    args = parse_cmd_arguments()
-    if args.config_file:
-        container_config = Path(args.config_file)
-    else:    
-        container_config = Path(f"{toolkit_home}/Container_Configs/")
+    container_config = Path(f"{toolkit_home}/Container_Configs/")
     cmd_output("*",sep="")
     cmd_output("Loading Model Config Files")
     cmd_output("*",sep="")
     
     Containers = load_container_config_file(container_config)
+    
+    Model_names=Containers.keys()
 
+    args = parse_cmd_arguments(Model_names) 
     if args.operation.lower() == "list":
         # just list all detected containers then exit
         list_containers(Containers, args.group,args.long_desc, args.model_name)
