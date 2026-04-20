@@ -111,6 +111,12 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         'sevennet-l3i5': '7net-l3i5',
     }
 
+    GRACE = {
+        'grace-1l-oam':f'{models_dir}/GRACE-1L-OAM',
+        'grace-2l-mptrj':f'{models_dir}/MP_GRACE_2L_r6_11Nov2024',
+        'grace-2l-oam':f'{models_dir}GRACE-2L-OAM',
+        'grace-2l-oam-l':f'{models_dir}/GRACE-2L-OMAT-large-ft-AM'
+    }
     ML_model_option_lower = ML_model_option.lower()
     ASE_Calculator = None
 
@@ -365,6 +371,24 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
             raise ModuleNotFoundError('SevenNet cannot be found, please install.')
     
         ASE_Calculator = SevenNetCalculator(model=SEVENNET_single[ML_model_option],device=kwargs['device'])
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Grace pretrained models
+    # 
+    # Sinlge task models from SevenNet, no task argumant required
+    #
+    #      Params:
+    #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
+    # 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif ML_model_option_lower in GRACE:
+        try:
+            #from tensorpotential.calculator import grace_fm
+            from tensorpotential.calculator.asecalculator import TPCalculator
+        except:
+            raise ModuleNotFoundError('Grace cannot be found, please install.')
+    
+        #ASE_Calculator = grace_fm(GRACE[ML_model_option])
+        ASE_Calculator = TPCalculator(model=GRACE[ML_model_option])
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # END
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

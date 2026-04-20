@@ -1,0 +1,36 @@
+# Config file for pre-trained models from Gracemaker
+# Full details of avalible models can be found at 
+# https://gracemaker.readthedocs.io/en/latest/gracemaker/foundation/
+
+GRACE-2L-OAM-L:
+  description: 'Large Two-layer semi-local model, pre-trained on OMat24 and then fine-tuned on a combination of the sAlex dataset and the MPtraj dataset.' 
+  groups: ['Grace','Matbench']
+  image_file: Images/Grace/GRACE-2L-OAM-L.sif
+  container_definition: Definitions/Grace/Grace_V0.5.2.def
+  build_options: {'model_name':'GRACE-2L-OAM-L','model_dir':'GRACE-2L-OMAT-large-ft-AM'}
+  CASTEP: True
+
+GRACE-2L-OAM:
+  description: 'Small Two-layer semi-local model, pre-trained on OMat24 and then fine-tuned on a combination of the sAlex dataset and the MPtraj dataset.' 
+  groups: ['Grace','Matbench']
+  image_file: Images/Grace/GRACE-2L-OAM.sif
+  container_definition: Definitions/Grace/Grace_V0.5.2.def
+  build_options: {'model_name':'GRACE-2L-OAM','model_dir':'GRACE-2L-OAM'}
+  CASTEP: True
+
+GRACE-1L-OAM:
+  description: 'Small Single-layer semi-local model, pre-trained on OMat24 and then fine-tuned on a combination of the sAlex dataset and the MPtraj dataset.' 
+  groups: ['Grace','Matbench']
+  image_file: Images/Grace/GRACE-1L-OAM.sif
+  container_definition: Definitions/Grace/Grace_V0.5.2.def
+  build_options: {'model_name':'GRACE-1L-OAM','model_dir':'GRACE-1L-OAM'}
+  CASTEP: True
+
+GRACE-2L-MPtrj:
+  description: 'Older Model, trained on just the MPtraj dataset.' 
+  groups: ['Grace','Matbench']
+  image_file: Images/Grace/GRACE-2L-MPtrj.sif
+  container_definition: Definitions/Grace/Grace_V0.4.4.def
+  build_options: {'model_name':'GRACE-2L-MPtrj','model_dir':'MP_GRACE_2L_r6_11Nov2024'}
+  CASTEP: True
+
