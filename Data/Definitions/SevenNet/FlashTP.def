@@ -1,6 +1,6 @@
 Bootstrap: docker
-From: ubuntu:24.04
-#From: nvidia/cuda:12.8.1-devel-ubuntu24.04
+#From: ubuntu:24.04
+From: nvidia/cuda:13.0.0-devel-ubuntu24.04
 %files
     {{ toolkit_home }}/Scripts/HAProxy.cfg cfg/
     {{ toolkit_home }}/Scripts/ML_server.py prediction/
@@ -10,6 +10,7 @@ From: ubuntu:24.04
     {{ toolkit_home }}/Definitions/SevenNet/req_sevennet.txt requirements.txt
 
 %post -c /bin/bash
+    set -eu
     apt update
     apt install -y build-essential wget g++ git haproxy python3-pip python3.12-venv
     python3 -m venv /envs/ML_env
@@ -23,14 +24,18 @@ From: ubuntu:24.04
     pip install -r requirements.txt
     export CUDA_ARCH_LIST='{{ CUDA_ARCH }}'
     # use auto detection of cuda arch from available gpus, if specified in yaml file
-    if [ $CUDA_ARCH_LIST=='auto' ]; then
-        export CUDA_ARCH_LIST=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | sed 's/\.//g' | sort -u | tr '\n' ';' | sed 's/;$//')
+    if [ ${CUDA_ARCH_LIST} == "auto" ]; then
+        export CUDA_ARCH_LIST=$(python -c "import torch; print(';'.join(sorted({f'{torch.cuda.get_device_capability(i)[0]}.       {torch.cuda.get_device_capability(i)[1]}' for i in range(torch.cuda.device_count())})) if torch.cuda.is_available() else 'cpu')")
     fi
-    pip install . --no-build-isolation
+    if [ ${CUDA_ARCH_LIST} == "cpu" ]; then
+        echo "Error: CUDA_ARCH has not been auto-detected properly please specify this in the config manually"
+        exit 22
+    fi
+    echo "done"
+    CUDA_ARCH_LIST="${CUDA_ARCH_LIST}" pip install . --no-build-isolation
     cd ..
 # make blank dir in container for mounting toolkit_home to for use with --sandbox
     mkdir -p {{ toolkit_home }}
-
     echo "****************************************************"
     echo "                  Build complete:"
     echo "****************************************************"
