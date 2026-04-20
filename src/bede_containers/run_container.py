@@ -1,4 +1,5 @@
 import argparse
+import argcomplete
 from pathlib import Path
 import subprocess, sys, yaml
 from dataclasses import dataclass, field
@@ -478,11 +479,20 @@ def format_command(
     cmd_output('*',sep='')
     return apptainer_command
 
+def get_ModelNames(toolkit_home,filename='Available_Models.txt'):
+    '''
+    get list of valid model names from master file.
+    '''
+    with open(f"{toolkit_home}/{filename}", "r") as f:
+        ModelNames = [line.strip() for line in f]
+    return ModelNames
 
 def parse_cmd_arguments():
     """
     Function to handle parsing of command line arguments
     """
+    toolkit_home = get_toolkit_home()
+    Model_names=get_ModelNames(toolkit_home,filename='Available_Models.txt')
 
     parser = argparse.ArgumentParser(
         description="A CLI tool for easily running AI/ML containers on Bede."
@@ -495,7 +505,7 @@ def parse_cmd_arguments():
     # sub-parser for the run operation
     run_parser = subparsers.add_parser("run", help=f"Run command(s), with the Container")
 
-    run_parser.add_argument("model_name", type=str, help="Name of Model to use")
+    run_parser.add_argument("model_name", choices=Model_names, help="Name of Model to use")
 
     run_parser.add_argument("cmd", type=str, nargs=argparse.REMAINDER, help="Command(s) to run")
     run_parser.add_argument("--interactive", action="store_true", help="run in interactive mode, ignores extra commands")
@@ -510,7 +520,7 @@ def parse_cmd_arguments():
         "build", help="Build the Container, exactly equivalent to load"
     )
 
-    build_parser.add_argument("model_name", type=str, help="Name of Model to use")
+    build_parser.add_argument("model_name", choices=Model_names, help="Name of Model to use")
     build_parser.add_argument("--writable", action="store_true", help="Build container as an editable sandbox, useful for dev/debugging as it enables you to freely edit the container.")   
     build_parser.add_argument("-f","--force", action="store_true", help="Force overwrite of existing container.")
 
@@ -519,9 +529,10 @@ def parse_cmd_arguments():
         "load", help="Build the Container, exactly equivalent to build"
     )
 
-    load_parser.add_argument("model_name", type=str, help="Name of Model to use")
+    load_parser.add_argument("model_name", choices=Model_names, help="Name of Model to use")
     load_parser.add_argument("--writable", action="store_true", help="Build container as an editable sandbox, useful for dev/debugging. Run with --writable to freely edit the container.")   
-
+    load_parser.add_argument("-f","--force", action="store_true", help="Force overwrite of existing container.")
+    
     # sub-parser for the list operation
     list_parser = subparsers.add_parser("list", help="List available containers")
 
@@ -537,7 +548,7 @@ def parse_cmd_arguments():
     # sub-parser for the start operation
     start_parser = subparsers.add_parser("start", help="Start Container as background process.")
 
-    start_parser.add_argument("model_name", type=str, help="Name of Model to use")    
+    start_parser.add_argument("model_name", choices=Model_names, help="Name of Model to use")    
     start_parser.add_argument("-p","--port", type=int, default=None, help="Used with CASTEP, tcp network port, if provided ml-toolkit will check for network traffic on the given tcp port once the container has started. Used to verify a server has started correctly. ")    
     start_parser.add_argument("-t","--timeout", type=int, default=5, help="time in seconds before server times out. Default: 10")
     start_parser.add_argument("-n","--num_servers", type=int, default=1, help="Used with CASTEP, number of python servers to spawn. Default: 1")                       
@@ -549,7 +560,7 @@ def parse_cmd_arguments():
         "stop", help="Stop container that is running in the background"
     )
 
-    stop_parser.add_argument("model_name", type=str, help="Name of Model to use")
+    stop_parser.add_argument("model_name", choices=Model_names, help="Name of Model to use")
 
     # other arguments for main parser
     parser.add_argument(
@@ -565,7 +576,7 @@ def parse_cmd_arguments():
         action="version",
         version=__version__,
     )   
-
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
     return args
 
@@ -664,16 +675,18 @@ def check_task(task,available_tasks,model_name):
     else:
         print(f'Performing task: {task} for {model_name}.')
         return
-    
+
 ###############################################################################
 # Main program starts here
 ###############################################################################
 def main() -> int:
+    toolkit_home = get_toolkit_home()
+    #Model_names=get_ModelNames(toolkit_home,filename='Available_Models.txt')
+
     args = parse_cmd_arguments()
     if args.config_file:
         container_config = Path(args.config_file)
-    else:
-        toolkit_home = get_toolkit_home()
+    else:    
         container_config = Path(f"{toolkit_home}/Container_Configs/")
     cmd_output("*",sep="")
     cmd_output("Loading Model Config Files")
@@ -695,9 +708,10 @@ def main() -> int:
 
     if model_name not in Containers.keys():
         raise ValueError(
-            f"no model named {model_name} was found in a config file.\n \
+            f"no model named {model_name} was found in the config file.\n \
                             Model must be one of \n{list(Containers.keys())}"
         )
+    
     check_model_implemented(model_name)
     config_to_log(Containers[model_name],model_name)
     # check to see if Apptainer is available on the system path
