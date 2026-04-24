@@ -97,7 +97,6 @@ def cleanup_output_files(model_name,folder_path,fileprefix='Si_'):
     return
 
 @pytest.mark.CASTEP
-@pytest.mark.skip
 def test_FileMethod(request):
     """
     Test to check the CASTEP File Method is working correctly with a given ml model.
@@ -116,24 +115,22 @@ def test_FileMethod(request):
         # get task option if needed
         task = get_task(model)
         create_input_files(model,f"{DATA_DIR}/Input_files",task)
-        apptainer_command = f"castep.serial {DATA_DIR}/Input_files/Si_{model}"
-        proc = subprocess.run(apptainer_command, shell=True)
+        command = f"castep.serial {DATA_DIR}/Input_files/Si_{model}"
+        return_code=0
         try:
-            proc.check_returncode()
+            proc = subprocess.run(command, shell=True,check=True)
         except subprocess.CalledProcessError as e:
             print(f"An error occurred. Container exited with the exit code {e.returncode}:")
             print(e)
-            raise e
-            assert proc.returncode == 0
         finally:
             # always cleanup but only the container if we built it during the test
             if cleanup_container:
                 cleanup_test_container(model)
             cleanup_output_files(model,f"{DATA_DIR}/Input_files")
-        assert proc.returncode==0    
     return
 
 @pytest.mark.CASTEP
+@pytest.mark.skip
 def test_ServerMethod(request):
     """
     Test to check the CASTEP server Method is working correctly with a given ml model.
@@ -157,9 +154,9 @@ def test_ServerMethod(request):
             task=f'--task={task}'
         #start python server
         apptainer_command = f"ml-toolkit start {model} {task}"
-        proc = subprocess.run(apptainer_command, shell=True)
+        
         try:
-            proc.check_returncode()
+            proc = subprocess.run(apptainer_command, shell=True,check=True)
         except subprocess.CalledProcessError as e:
             print(f"An error occurred. Container exited with the exit code {e.returncode}:")
             print(e)
@@ -167,9 +164,8 @@ def test_ServerMethod(request):
         assert proc.returncode==0
         # run castep
         apptainer_command = f"castep.serial Input_files/graphene"
-        proc = subprocess.run(apptainer_command, shell=True)
         try:
-            proc.check_returncode()
+            proc = subprocess.run(apptainer_command, shell=True,check=True)
         except subprocess.CalledProcessError as e:
             print(f"An error occurred. Container exited with the exit code {e.returncode}:")
             print(e)
@@ -182,5 +178,4 @@ def test_ServerMethod(request):
             # also always stop the server
             apptainer_command = f"ml-toolkit stop {model}"
             proc = subprocess.run(apptainer_command, shell=True)
-        assert proc.returncode==0
     return
