@@ -117,6 +117,15 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         'grace-2l-oam':f'{models_dir}GRACE-2L-OAM',
         'grace-2l-oam-l':f'{models_dir}/GRACE-2L-OMAT-large-ft-AM'
     }
+
+    TACE = {
+        'tace-omat24-l':f'{models_dir}/TACE-OMat24-L.pt',
+        'tace-oam-l':f'{models_dir}/TACE-OAM-L.pt'
+    }
+    Matris = {
+        'matris_10m_oam':'matris_10m_oam',
+        'matris_10m_mp':'matris_10m_mp'
+    }
     ML_model_option_lower = ML_model_option.lower()
     ASE_Calculator = None
 
@@ -354,7 +363,7 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
             print(f'This must be one of: {avalible_tasks}.')
             sys.exit(11)
 
-        ASE_Calculator = SevenNetCalculator(model=SEVENNET_multi[ML_model_option], modal=kwargs['task'],device=kwargs['device'])
+        ASE_Calculator = SevenNetCalculator(model=SEVENNET_multi[ML_model_option_lower], modal=kwargs['task'],device=kwargs['device'])
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # SevenNet pretrained models (single)
     # 
@@ -370,12 +379,10 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         except:
             raise ModuleNotFoundError('SevenNet cannot be found, please install.')
     
-        ASE_Calculator = SevenNetCalculator(model=SEVENNET_single[ML_model_option],device=kwargs['device'])
+        ASE_Calculator = SevenNetCalculator(model=SEVENNET_single[ML_model_option_lower],device=kwargs['device'])
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # Grace pretrained models
     # 
-    # Sinlge task models from SevenNet, no task argumant required
-    #
     #      Params:
     #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
     # 
@@ -388,7 +395,21 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
             raise ModuleNotFoundError('Grace cannot be found, please install.')
     
         #ASE_Calculator = grace_fm(GRACE[ML_model_option])
-        ASE_Calculator = TPCalculator(model=GRACE[ML_model_option])
+        ASE_Calculator = TPCalculator(model=GRACE[ML_model_option_lower])
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # TACE pretrained models
+    #
+    #      Params:
+    #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
+    # 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif ML_model_option_lower in TACE:
+        try:
+            from tace.interface.ase import TACEAseCalc
+        except:
+            raise ModuleNotFoundError('TACE cannot be found, please install.')
+    
+        ASE_Calculator = TACEAseCalc(TACE[ML_model_option_lower],device=kwargs['device'],dtype='float32')
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # END
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

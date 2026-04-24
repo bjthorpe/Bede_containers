@@ -35,7 +35,7 @@ def is_server_ready(host, port, message="ping", timeout=2):
     except (socket.timeout, ConnectionRefusedError, OSError):
         return False
 
-def wait_for_server(host, port, retries=5, delay=10):
+def wait_for_server(host, port, retries=5, delay=20):
     '''
     The python server can be annoyingly slow to start up.
     This function waits for it to start and retries a 
@@ -125,7 +125,7 @@ def check_config_options(container:dict,name:str,filename:str):
             continue
         # check for case sensitivity and fix if necessary
         elif option.lower() in valid_options:
-            logging.warning(f"Option: {option} is not valid in config of Contatiner {name}. Assuming you meant: {option.lower()}")
+            logging.warning(f"Option: {option} is not valid in config of Container {name}. Assuming you meant: {option.lower()}")
             new_key = option.lower()
             container[new_key] = container[option]
             container.pop(option)
@@ -223,8 +223,7 @@ def check_container_config(config_files: list):
                         contains a symbolic link. Apptainer will not  \n \
                         be able to mount this. \n \
                         Please use the absolute path to this directory"
-                        raise ValueError(err_msg)
-                    
+                        raise ValueError(err_msg)    
             # do some checks for automatic mount flags if needed
             if result.dont_mount != []:
                 available_flags = ['home','cwd']
@@ -540,7 +539,7 @@ def parse_cmd_arguments(Model_names):
 
     start_parser.add_argument("model_name", choices=Model_names, help="Name of Model to use")    
     start_parser.add_argument("-p","--port", type=int, default=None, help="Used with CASTEP, tcp network port, if provided ml-toolkit will check for network traffic on the given tcp port once the container has started. Used to verify a server has started correctly. ")    
-    start_parser.add_argument("-t","--timeout", type=int, default=5, help="time in seconds before server times out. Default: 10")
+    start_parser.add_argument("-t","--timeout", type=int, default=20, help="time in seconds before server times out. Default: 20")
     start_parser.add_argument("-n","--num_servers", type=int, default=1, help="Used with CASTEP, number of python servers to spawn. Default: 1")                       
     start_parser.add_argument("-r","--num_retry", type=int, default=3, help="number of times to retry when waiting for python server. Default: 5")
     start_parser.add_argument("-T","--task", type=str, default='', help="Task to perform, required for all Meta UMA and selected SevenNet models, ignored by all others. See the docs for valid options")

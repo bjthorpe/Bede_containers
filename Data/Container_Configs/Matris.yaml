@@ -1,0 +1,19 @@
+# Config file for pre-trained models fromTensor Materials Representation and Interaction Simulation (MatRIS)
+# Full details of available models can be found at https://github.com/HPC-AI-Team/MatRIS/tree/main
+
+MatRIS_10M_OAM:
+  description: 'MatRIS is a foundation model for materials representation and interaction simulation.' 
+  groups: ['MatRIS','Matbench']
+  image_file: Images/Matris/MatRIS_10M_OAM.sif
+  container_definition: Definitions/Matris/Matris.def
+  build_options: {'model_name':'MatRIS_10M_OAM','checkpoint_file':'MatRIS_10M_OAM.pth.tar'} 
+  CASTEP: True
+
+MatRIS_10M_MP:
+  description: 'MatRIS is a foundation model for materials representation and interaction simulation.' 
+  groups: ['MatRIS','Matbench']
+  image_file: Images/Matris/MatRIS_10M_MP.sif
+  container_definition: Definitions/Matris/Matris.def
+  build_options: {'model_name':'MatRIS_10M_MP','checkpoint_file':'MatRIS_10M_MP.pth.tar'} 
+  CASTEP: True
+
