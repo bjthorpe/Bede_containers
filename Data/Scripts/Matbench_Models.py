@@ -127,9 +127,10 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         'tace-omat24-l':f'{models_dir}/TACE-OMat24-L.pt',
         'tace-oam-l':f'{models_dir}/TACE-OAM-L.pt'
     }
+    # stored under 
     Matris = {
-        'matris_10m_oam':'matris_10m_oam',
-        'matris_10m_mp':'matris_10m_mp'
+        'matris_10m_oam':f'matris_10m_oam',
+        'matris_10m_mp':f'matris_10m_mp'
     }
 
     ORBV = {
@@ -491,7 +492,7 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         )
         ASE_Calculator = ORBCalculator(orbff, atoms_adapter=atoms_adapter, device=kwargs['device'])
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    # TACE pretrained models
+    # Equiformer pretrained models
     #
     #      Params:
     #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
@@ -510,6 +511,24 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
             cpu_flag=True
         #checkpoint_path = model_name_to_local_file(Equiformer[ML_model_option_lower], local_cache='/Models')
         ASE_Calculator = OCPCalculator(checkpoint_path=Equiformer[ML_model_option_lower],cpu=cpu_flag,seed=0)
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # Matris pretrained models
+    #
+    #      Params:
+    #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
+    # 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif ML_model_option_lower in Matris:
+        try:
+            from matris.applications.base import MatRISCalculator
+        except:
+            raise ModuleNotFoundError('Matris cannot be found, please install.')
+        
+        device = kwargs['device']
+        ASE_Calculator = MatRISCalculator(
+            model=Matris[ML_model_option_lower],
+            device=device # cpu or cuda
+        )
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # END
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

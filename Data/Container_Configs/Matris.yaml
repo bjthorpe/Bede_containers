@@ -6,7 +6,8 @@ MatRIS_10M_OAM:
   groups: ['MatRIS','Matbench']
   image_file: Images/Matris/MatRIS_10M_OAM.sif
   container_definition: Definitions/Matris/Matris.def
-  build_options: {'model_name':'MatRIS_10M_OAM','checkpoint_file':'MatRIS_10M_OAM.pth.tar'} 
+  build_options: {'model_name':'MatRIS_10M_OAM'} 
+  dont_mount: ['home']
   CASTEP: True
 
 MatRIS_10M_MP:
@@ -14,6 +15,7 @@ MatRIS_10M_MP:
   groups: ['MatRIS','Matbench']
   image_file: Images/Matris/MatRIS_10M_MP.sif
   container_definition: Definitions/Matris/Matris.def
-  build_options: {'model_name':'MatRIS_10M_MP','checkpoint_file':'MatRIS_10M_MP.pth.tar'} 
+  dont_mount: ['home']
+  build_options: {'model_name':'MatRIS_10M_MP'} 
   CASTEP: True
 
