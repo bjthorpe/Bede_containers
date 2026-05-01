@@ -1,0 +1,18 @@
+# Config file for pre-trained models from Equiformer_V3 
+# https://github.com/atomicarchitects/equiformer_v3
+
+DPA-3.1-3M-FT:
+  description: "model pretrained on the OpenLAM dataset (using DPA-3.1-3M from DPA3-paper), and finetuned with MPtraj & Sub-Alex datasets."
+  groups: ['DeepMD','Matbench']
+  image_file: Images/DeepMD/DPA-3.1-3M-FT.sif
+  container_definition: Definitions/DeepMD/DeepMD.def
+  build_options: {'model_name':'DPA-3.1-3M-FT'} 
+  CASTEP: True
+
+DPA-3.1-MPtrj:
+  description: "DeepMD model trained only on the MPtrj dataset."
+  groups: ['DeepMD','Matbench']
+  image_file: Images/DeepMD/DPA-3.1-Mptrj.sif
+  container_definition: Definitions/DeepMD/DeepMD.def
+  build_options: {'model_name':'DPA-3.1-Mptrj'} 
+  CASTEP: True

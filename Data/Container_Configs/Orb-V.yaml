@@ -1,0 +1,110 @@
+# Config file for pre-trained models from (ORB-V)
+# Full details of available models can be found at:
+# https://github.com/orbital-materials/orb-models/blob/main/MODELS.md
+
+# ORB-V3 Models
+ORB-v3:
+  description: "Identical to ORB-v3-conservative-inf-omat, this is the model ranked on matbench discovery."
+  groups: ['ORB-v3','Matbench']
+  image_file: Images/ORB-V/ORB-v3.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3/orb-v3-conservative-inf-omat-20250404.ckpt"} 
+  CASTEP: True
+
+ORB-v3-conservative-omol:  
+  groups: ['ORB-v3']
+  description: "ORB v3 Conservative with effectively unlimited neighbors, trained on OMol25. Effectively unlimited, in this case means that the model will use all neighbors within 6A the cutoff radius. Empirically, for the training distribution, 120 is sufficient."
+  image_file: Images/ORB-V/ORB-v3-conservative-omol.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3-conservative-omol','url':'https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3-conservative-omol-20250820.ckpt'} 
+  CASTEP: True
+
+ORB-v3-direct-omol:
+  groups: ['ORB-v3']
+  description: "ORB v3 Direct with effectively unlimited neighbors, trained on OMol25. Effectively unlimited, in this case, means that the model will use all neighbors within 6A the cutoff radius. Empirically, for the training distribution, 120 is sufficient."
+  image_file: Images/ORB-V/ORB-v3-direct-omol.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3-direct-omol','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3-direct-omol-20250820.ckpt"} 
+  CASTEP: True
+
+ORB-v3-conservative-20-omat:
+  groups: ['ORB-v3']
+  description: "ORB v3 Conservative 20 max neighbors trained on just OMAT."
+  image_file: Images/ORB-V/ORB-v3-conservative-20-omat.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3-conservative-20-omat','url': "https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3/orb-v3-conservative-20-omat-20250404.ckpt"} 
+  CASTEP: True
+
+ORB-v3-conservative-inf-omat:
+  groups: ['ORB-v3']
+  description: "ORB v3 Conservative with effectively unlimited neighbors, trained on OMAT. Effectively unlimited' means that the model will use all neighbors within 6A the cutoff radius. Empirically, for the training distribution, 120 is sufficient."
+  image_file: Images/ORB-V/ORB-v3-conservative-inf-omat.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3-conservative-inf-omat','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3/orb-v3-conservative-inf-omat-20250404.ckpt"} 
+  CASTEP: True
+
+ORB-v3-direct-20-omat:
+  groups: ['ORB-v3']
+  description: "ORB v3 Direct 20 max neighbors OMAT."
+  image_file: Images/ORB-V/ORB-v3-direct-20-omat.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3-direct-20-omat','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3/orb-v3-direct-20-omat-20250404.ckpt"} 
+  CASTEP: True
+
+ORB-v3-direct-inf-omat:
+  groups: ['ORB-v3']
+  description: "ORB v3 Direct with effectively unlimited neighbors, trained on OMAT Effectively unlimited' means that the model will use all neighbors within 6A the cutoff radius. Empirically, for the training distribution, 120 is sufficient."
+  image_file: Images/ORB-V/ORB-v3-direct-inf-omat.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3-direct-inf-omat','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3/orb-v3-direct-inf-omat-20250404.ckpt"} 
+  CASTEP: True
+
+ORB-v3-conservative-20-mpa:
+  groups: ['ORB-v3']
+  description: "ORB v3 Conservative 20 max neighbors MPTraj + Alexandria."
+  image_file: Images/ORB-V/ORB-v3-conservative-20-mpa.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3-conservative-20-mpa','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3/orb-v3-conservative-20-mpa-20250404.ckpt"} 
+  CASTEP: True
+
+ORB-v3-conservative-inf-mpa:
+  groups: ['ORB-v3']
+  description: ORB v3 Conservative with effectively unlimited neighbors, trained on MPTraj + Alexandria. Effectively unlimited means that the model will use all neighbors within 6A the cutoff radius. Empirically, for the training distribution, 120 is sufficient."
+  image_file: Images/ORB-V/ORB-v3-conservative-inf-mpa.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3-conservative-inf-mpa','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3/orb-v3-conservative-inf-mpa-20250404.ckpt"} 
+  CASTEP: True
+
+ORB-v3-direct-20-mpa:
+  groups: ['ORB-v3']
+  description: "ORB v3 Direct 20 max neighbors MPTraj + Alexandria."
+  image_file: Images/ORB-V/ORB-v3-direct-20-mpa.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3-direct-20-mpa','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3/orb-v3-direct-20-mpa-20250404.ckpt"} 
+  CASTEP: True
+
+ORB-v3-direct-inf-mpa:
+  groups: ['ORB-v3']
+  description: "ORB v3 Direct with effectively unlimited neighbors, trained on MPTraj + Alexandria. Effectively unlimited' means that the model will use all neighbors within 6A the cutoff radius. Empirically, for the training distribution, 120 is sufficient."
+  image_file: Images/ORB-V/ORB-v3-direct-inf-mpa.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB-v3-direct-inf-mpa','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v3/orb-v3-direct-inf-mpa-20250404.ckpt"} 
+  CASTEP: True
+
+# ORB-V2 Models
+
+ORB-v2:
+  description: "ORB v2 Direct with 20 max neighbors, trained on MPTraj + Alexandria."
+  groups: ['ORB_V2','Matbench']
+  image_file: Images/ORB-V/ORB_v2.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB_v2','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-v2-20241011.ckpt"} 
+  CASTEP: True
+
+ORB-mptraj-only_v2:
+  groups: ['ORB_V2','Matbench']
+  description: "ORB v2 Direct with 20 max neighbors, trained on MPTraj."
+  image_file: Images/ORB-V/ORB_mptraj_only_v2.sif
+  container_definition: Definitions/ORB-V/ORB-V.def
+  build_options: {'model_name':'ORB_mptraj_only_v2','url':"https://orbitalmaterials-public-models.s3.us-west-1.amazonaws.com/forcefields/orb-mptraj-only-v2-20241014.ckpt"} 
+  CASTEP: True

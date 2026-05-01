@@ -1,0 +1,26 @@
+# Config file for pre-trained models from Equiformer_V3 
+# https://github.com/atomicarchitects/equiformer_v3
+
+EquiformerV3_DeNS_OAM:
+  description: "EquiformerV3 is the third generation of SE(3)-equivariant graph attention Transformers. This has been trained on:OMat24 and fine-tuned with MPtrj and sAlex."
+  groups: ['EquiformerV3','Matbench']
+  image_file: Images/Equiformer/EquiformerV3_DeNS_OAM.sif
+  container_definition: Definitions/Equiformer/Equiformer.def
+  build_options: {'model_name':'EquiformerV3_DeNS_OAM','url':"https://huggingface.co/mirror-physics/equiformer_v3/resolve/main/checkpoint/omat24-mptrj-salex_gradient.pt"} 
+  CASTEP: True
+
+EquiformerV3_DeNS_MP:
+  description: "EquiformerV3 is the third generation of SE(3)-equivariant graph attention Transformers. This has been trained on: just Mptrj data."
+  groups: ['EquiformerV3','Matbench']
+  image_file: Images/Equiformer/EquiformerV3_DeNS_MP.sif
+  container_definition: Definitions/Equiformer/Equiformer.def
+  build_options: {'model_name':'EquiformerV3_DeNS_MP','url':"https://huggingface.co/mirror-physics/equiformer_v3/resolve/main/checkpoint/mptrj_gradient.pt"} 
+  CASTEP: True
+
+EquiformerV3-omat:
+  description: "EquiformerV3 is the third generation of SE(3)-equivariant graph attention Transformers. This has been trained on and fine tuned with OMAT24 dataset."
+  groups: ['EquiformerV3']
+  image_file: Images/Equiformer/EquiformerV3_OMAT.sif
+  container_definition: Definitions/Equiformer/Equiformer.def
+  build_options: {'model_name':'EquiformerV3_OMAT','url':"https://huggingface.co/mirror-physics/equiformer_v3/resolve/main/checkpoint/omat24_gradient.pt"} 
+  CASTEP: True

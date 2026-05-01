@@ -73,7 +73,7 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         "uma-m-1p1": f"{models_dir}/uma-m-1p1.pt",
     }
 
-    MatterSim = {"mattersim": f"MatterSim-v1.0.0-5M.pth"}
+    MatterSim = {"mattersim_v1_5m": f"MatterSim-v1.0.0-5M.pth"}
 
     NequIP = {
         'nequip-oam-xl':f'{models_dir}/Nequip/NequIP-OAM-XL-0.1.nequip.zip',
@@ -126,6 +126,36 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         'matris_10m_oam':'matris_10m_oam',
         'matris_10m_mp':'matris_10m_mp'
     }
+
+    ORBV = {
+        # orb-v3 models
+        "orb-v3":f'{models_dir}/ORB-v3.chkpt',
+        "orb-v3-conservative-omol": f'{models_dir}/ORB-v3_conservative_omol.chkpt',
+        "orb-v3-direct-omol": f'{models_dir}/ORB-v3_direct_omol.chkpt',
+        "orb-v3-conservative-20-omat": f'{models_dir}/ORB-v3_direct_omol.chkpt',
+        "orb-v3-conservative-inf-omat": f'{models_dir}/ORB-v3_conservative_inf_omat.chkpt',
+        "orb-v3-direct-20-omat": f'{models_dir}/ORB-v3_direct_20_omat.chkpt',
+        "orb-v3-direct-inf-omat": f'{models_dir}/ORB-v3_direct_inf_omat.chkpt',
+        "orb-v3-conservative-20-mpa": f'{models_dir}/ORB-v3_conservative_20_mpa.chkpt',
+        "orb-v3-conservative-inf-mpa": f'{models_dir}/ORB-v3_conservative_inf_mpa.chkpt',
+        "orb-v3-direct-20-mpa": f'{models_dir}/ORB-v3_direct_20_mpa.chkpt',
+        "orb-v3-direct-inf-mpa": f'{models_dir}/ORB_v3_direct_inf_mpa.chkpt',
+        # orb-v2 models
+        "orb-v2": f'{models_dir}/ORB_v2.chkpt',
+        "orb-mptraj-only-v2": f'{models_dir}/ORB_mptraj_only_v2.chkpt',
+    }
+    
+    Equiformer={
+        "equiformerv3_dens_oam":f'{models_dir}/omat24-mptrj-salex_gradient.pt',
+        "equiformerv3_dens_mp":f'{models_dir}/mptrj_gradient.pt',
+        "equiformerv3_omat":f'{models_dir}/omat24_gradient.pt',
+    }
+
+    DEEPMD={
+        'dpa-3.1-3m-ft':f'{models_dir}/dpa-3.1-3m-ft.pth',
+        'dpa-3.1-mprtj':f'{models_dir}/dpa-3.1-mprtj.pth'
+    }
+
     ML_model_option_lower = ML_model_option.lower()
     ASE_Calculator = None
 
@@ -410,6 +440,71 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
             raise ModuleNotFoundError('TACE cannot be found, please install.')
     
         ASE_Calculator = TACEAseCalc(TACE[ML_model_option_lower],device=kwargs['device'],dtype='float32')
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # DeepMD pre-trained models
+    #
+    #      Params:
+    #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
+    # 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif ML_model_option_lower in DEEPMD:
+        try:
+            from deepmd.calculator import DP
+        except:
+            raise ModuleNotFoundError('DeepMD cannot be found, please install.')
+    
+        ASE_Calculator = DP(model=DEEPMD[ML_model_option_lower])
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ORBV pretrained models
+    #
+    #      Params:
+    #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
+    # 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif ML_model_option_lower in ORBV:
+        try:
+            from orb_models.forcefield import pretrained
+            from orb_models.forcefield.pretrained import ORB_PRETRAINED_MODELS
+            from orb_models.forcefield.inference.calculator import ORBCalculator
+        except:
+            raise ModuleNotFoundError('ORB_V cannot be found, please install.')
+        
+        # This loks a bit wierd but is here because orb-v3 has two names 
+        # want to keep using orb-v3 in our dict as thats the name used by matbench discover.
+        # However, ob-matrials lists the model as orb-v3-conservative-inf-omat
+
+        ModelName = ML_model_option_lower
+        if ML_model_option_lower == 'orb-v3': 
+            ML_model_option_lower = 'orb-v3-conservative-inf-omat'
+
+        method = ORB_PRETRAINED_MODELS[ML_model_option_lower]
+
+        orbff, atoms_adapter = method(
+            weights_path=ORBV[ModelName],
+            device=kwargs['device'],
+            precision="float32-high", # or precision="float32-highest"
+        )
+        ASE_Calculator = ORBCalculator(orbff, atoms_adapter=atoms_adapter, device=kwargs['device'])
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # TACE pretrained models
+    #
+    #      Params:
+    #           "device" - what device to target. Can be either 'cpu' or 'cuda'.
+    # 
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif ML_model_option_lower in Equiformer:
+        try:
+            from fairchem.core.common.relaxation.ase_utils import OCPCalculator
+            from fairchem.core.models.model_registry import model_name_to_local_file
+        except:
+            raise ModuleNotFoundError('Equiformer cannot be found, please install.')
+        
+        if kwargs['device'] =='cuda':
+            cpu_flag=False
+        else:
+            cpu_flag=True
+        #checkpoint_path = model_name_to_local_file(Equiformer[ML_model_option_lower], local_cache='/Models')
+        ASE_Calculator = OCPCalculator(checkpoint_path=Equiformer[ML_model_option_lower],cpu=cpu_flag,seed=0)
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # END
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

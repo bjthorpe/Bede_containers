@@ -41,7 +41,7 @@ def is_valid_name(ModelName: str) -> bool:
     import re
 
     # Check for forbidden characters
-    p = "^[A-Za-z0-9_-]*$"  # pattern
+    p = "^[.A-Za-z0-9_-]*$"  # pattern
     x = re.search(p, ModelName)
 
     if x:

@@ -2,7 +2,7 @@
 # full details of available models can be found here: https://sevennet.readthedocs.io/en/latest/user_guide/pretrained.html#sevennet-omat
 
 SevenNet-Omni:
-  description: 'SevenNet Recommend model trained on 15 abinitio datasets' 
+  description: 'SevenNet Recommend model trained on the COSMOS dataset: https://matbench-discovery.materialsproject.org/data/cosmosdataset' 
   groups: ['SevenNet']
   image_file: Images/SevenNet/SevenNet-Omni.sif
   container_definition: Definitions/SevenNet/SevenNet.def
