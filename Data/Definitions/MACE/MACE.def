@@ -1,0 +1,122 @@
+Bootstrap: docker
+From: python:3.11
+
+%files
+    {{ toolkit_home }}/Scripts/HAProxy.cfg cfg/
+    {{ toolkit_home }}/Scripts/ML_server.py prediction/
+    {{ toolkit_home }}/Scripts/Matbench_Models.py prediction/
+    {{ toolkit_home }}/Scripts/utility prediction/utility
+    {{ toolkit_home }}/Scripts/server prediction/server
+    {{ toolkit_home }}/Definitions/MACE/requirements.txt requirements.txt
+
+%post -c /bin/bash
+
+    apt -y update
+    apt -y install haproxy 
+    mkdir -p /Models
+    python3 -m venv /envs/ML_env
+    source /envs/ML_env/bin/activate
+    #pip install mace-torch twisted
+    pip install -r requirements.txt
+    wget {{ url }}
+    mv *.model /Models
+# make blank dir in container for mounting toolkit_home to for use with --sandbox
+    mkdir -p {{ toolkit_home }}
+%startscript
+    set -eu
+    # send stdout and stderr to toolkit home 
+    if [ -z "$OUTPUT_FILE" ]; then
+        OUTPUT_FILE={{ toolkit_home }}/logs/{{ model_name }}
+        echo "writing output to ${OUTPUT_FILE}">&2
+
+    elif ! touch "${OUTPUT_FILE}.out" 2>/dev/null; then
+            echo "Cannot write to $OUTPUT_FILE" >&2
+            OUTPUT_FILE={{ toolkit_home }}/logs/{{ model_name }}
+            echo "writing output to ${OUTPUT_FILE} instead" >&2
+    else
+        echo "writing output to ${OUTPUT_FILE}" >&2
+    fi
+
+    # force std out/stderr to go to $OUTPUT_FILE not ~/.apptainer
+    exec > ${OUTPUT_FILE}.out 2> ${OUTPUT_FILE}.err
+    # start with sensible defaults
+    LISTEN_PORT=5000
+    TIMEOUT_OVERWRITE=60
+    NUM_SERVERS=1
+
+    # go through arguments and set variables as appropriate
+    while getopts "hp:t:N:" opt; do
+        case ${opt} in
+        h)
+            echo "Usage: $0 [OPTIONS]"
+            echo "  -h        Show this help message"
+            echo "  -p PORT_NUM    Set TCP port number, must be greater than 1024 (default: 5000)"
+            echo "  -t TIME   Server timeout in seconds, must be greater than 0 (default: 60)"
+            echo "  -N NUM_SERVERS   Number of python servers to spawn, must be greater than 0 (default: 1)"
+            exit 0
+            ;;
+        p)
+            if [ "${OPTARG}" -gt 1024 ] 2>/dev/null; then
+                LISTEN_PORT=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <port> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
+            
+        ;;
+        t)
+            if [ "${OPTARG}" -gt 0 ] 2>/dev/null; then
+                TIMEOUT_OVERWRITE=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <timeout> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
+        ;;
+        N)
+            if [ "${OPTARG}" -gt 0 ] 2>/dev/null; then
+                NUM_SERVERS=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <NServers> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
+        ;;
+
+        ?)
+        echo "Invalid option: -${OPTARG}." >&2
+        exit 1
+        ;;
+        esac
+    done
+
+    MAX_CONNS=$(($NUM_SERVERS*3))
+
+    # Start the python environment
+    . /envs/ML_env/bin/activate
+
+    # Move the base HAProxy config and server script to tmp for modification
+    cp /cfg/HAProxy.cfg /tmp/HAProxy_${LISTEN_PORT}.cfg
+    echo "" >> /tmp/HAProxy_${LISTEN_PORT}.cfg
+
+    # Add the load balancer listen port to the current instance config
+    sed -i "s/LISTEN_PORT/${LISTEN_PORT}/g" /tmp/HAProxy_${LISTEN_PORT}.cfg
+    sed -i "s/MAX_CONNS/${MAX_CONNS}/g" /tmp/HAProxy_${LISTEN_PORT}.cfg
+
+    # Modify the general timeout time in both HAproxy and the server script
+    sed -i "s/TIMEOUT_OVERWRITE/${TIMEOUT_OVERWRITE}/g" /tmp/HAProxy_${LISTEN_PORT}.cfg
+
+    # Create the number of servers given and add these to the config file
+    s=1
+    while [ $s -le $NUM_SERVERS ]; do
+        # Create a python server
+	python3 /prediction/ML_server.py -P $(($LISTEN_PORT+$s)) -L info -T ${TIMEOUT_OVERWRITE} -M MatterSim &
+	# Add it to the HAProxy config (in tmp)
+	echo "    server p${s} 127.0.0.1:$(($LISTEN_PORT+$s))" >> /tmp/HAProxy_${LISTEN_PORT}.cfg
+	s=$((s+1))
+    done
+
+    # Run server in Daemon mode (using modified config file in tmp)
+    haproxy -f /tmp/HAProxy_${LISTEN_PORT}.cfg -D >> {{ toolkit_home }}/logs/HAProxy.log 2>&1
+
+
+%environment
+    export PATH="/envs/ML_env/bin:$PATH"

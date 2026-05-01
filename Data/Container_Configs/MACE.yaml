@@ -1,0 +1,33 @@
+# Config file for MACE 
+# info on models  an be found https://mace-docs.readthedocs.io/en/latest/guide/foundation_models.html
+
+MACE-MPA-0:
+  description: 'MACE is a higher-order equivariant message-passing neural network for fast and accurate force fields.This model was pre-trained on MPTraj and Alexandria datasets. Note this is also the model built in to CASTEP'
+  groups: ['MatBench','MACE']
+  image_file: Images/MACE/MACE-MPA-0.sif
+  container_definition: Definitions/MACE/MACE.def
+  build_options: {'model_name':'MACE-MPA-0','url':'https://huggingface.co/mace-foundations/mace-mpa-0/resolve/main/mace-mpa-0-medium.model'}
+  CASTEP: True
+
+MACE-MP-0:
+  description: 'MACE is a higher-order equivariant message-passing neural network for fast and accurate force fields.This model was pre-trained on MPTraj datasets.'
+  groups: ['MatBench','MACE']
+  image_file: Images/MACE/MACE-MP-0.sif
+  container_definition: Definitions/MACE/MACE.def
+  build_options: {'model_name':'MACE-MP-0','url':'https://github.com/ACEsuit/mace-foundations/releases/download/mace_mp_0/2023-12-03-mace-128-L1_epoch-199.model'}
+  CASTEP: True
+
+MACE-Mh-0:
+  description: 'MACE is a higher-order equivariant message-passing neural network for fast and accurate force fields.This is the latest model pre-trained on OMAT,OMOL,OC20 and MATPES datasets.'
+  groups: ['MACE']
+  image_file: Images/MACE/MACE-Mh-0.sif
+  container_definition: Definitions/MACE/MACE.def
+  build_options: {'model_name':'MACE-Mh-0','url':'https://huggingface.co/mace-foundations/mace-mh-0/resolve/main/mace-mh-0.model'}
+  CASTEP: True
+
+MACE-Mh-1:
+  description: 'MACE is a higher-order equivariant message-passing neural network for fast and accurate force fields.This is the latest model pre-trained on OMAT,OMOL,OC20 and MATPES datasets. see: https://huggingface.co/mace-foundations/mace-mh-1 for details'
+  image_file: Images/MACE/MACE-Mh-1.sif
+  container_definition: Definitions/MACE/MACE.def
+  build_options: {'model_name':'MACE-Mh-1','url':'https://huggingface.co/mace-foundations/mace-mh-1/resolve/main/mace-mh-1.model'}
+  CASTEP: True

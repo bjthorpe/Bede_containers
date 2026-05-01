@@ -95,7 +95,12 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
         'pet-spice-l':f'{models_dir}/UPET/pet-spice-l-v0.2.0.ckpt',
         'pet-spice-s': f'{models_dir}/UPET/pet-spice-s-v0.2.0.ckpt'
     }
-    MACE = {'mace':f'mace-omat-0-medium.model'}
+    MACE = {
+        'mace-mpa-0':f'{models_dir}/mace-mpa-0-medium.model',
+        'mace-mp-0':f'{models_dir}/2023-12-03-mace-128-L1_epoch-199.model',
+        'mace-mh-0':f'{models_dir}/mace-mh-0.model',
+        'mace-mh-1':f'{models_dir}/mace-mh-1.model',                        
+            }
 
     # multi dataset models from 7net that require task
     SEVENNET_multi = {
@@ -193,7 +198,7 @@ def Get_ASE_Calculator(ML_model_option: str, **kwargs):
     #                          Default is to look inside /models.
     #           "default_dtype" - default data type
     ###############################################################################
-    elif ML_model_option_lower == 'mace':
+    elif ML_model_option_lower in MACE:
         try:
             from mace.calculators import MACECalculator
         except:
