@@ -169,14 +169,13 @@ def create_toolkit_home():
     cmd_output("*",sep="")
     args = parser.parse_args()
     toolkit_home = args.toolkit_home
-    dirs =['Container_Configs','Definitions','Scripts','API_Keys']
+    dirs =['Container_Configs','Definitions','Scripts','API_Keys','Models']
     if args.dev:
         msg = f"Dev mode enabled:\n Please enter the Path to the git repo\n or press enter to use the current working directory"
         toolkit_home = get_path_from_input(msg)
         # create logs and images dirs
         Path(f'{toolkit_home}/logs').mkdir(parents=True, exist_ok=True)
         Path(f'{toolkit_home}/Images').mkdir(parents=True, exist_ok=True)
-        Path(f'{toolkit_home}/Models').mkdir(parents=True, exist_ok=True)
     elif not args.update:
         if Path(toolkit_home).exists() and not args.overwrite:
             cmd_output(f'Installation path {toolkit_home} already exists',sentinel=' ')
@@ -196,7 +195,6 @@ def create_toolkit_home():
         # create logs and images dirs
         Path(f'{toolkit_home}/logs').mkdir(parents=True, exist_ok=True)
         Path(f'{toolkit_home}/Images').mkdir(parents=True, exist_ok=True)
-        Path(f'{toolkit_home}/Models').mkdir(parents=True, exist_ok=True)
         # copy files into Container_Config, Definitions and Scripts
         for dir in dirs:
             try:

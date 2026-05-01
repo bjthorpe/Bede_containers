@@ -64,6 +64,8 @@ Definitions/*.def
 #logfiles
 Data/logs/*
 Data/Models/*/*
+!Data/Models/DeepMD/*
+!Data/Models/Matris/*
 Data/Images/*/*.sif
 Data/Images/*.sif
 .vscode
