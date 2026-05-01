@@ -120,8 +120,7 @@ def test_FileMethod(request):
         try:
             proc = subprocess.run(command, shell=True,check=True)
         except subprocess.CalledProcessError as e:
-            print(f"An error occurred. Container exited with the exit code {e.returncode}:")
-            print(e)
+            pytest.fail(f"An error occurred: {e} Container exited with the exit code {e.returncode}:")
         finally:
             # always cleanup but only the container if we built it during the test
             if cleanup_container:
@@ -130,7 +129,6 @@ def test_FileMethod(request):
     return
 
 @pytest.mark.CASTEP
-@pytest.mark.skip
 def test_ServerMethod(request):
     """
     Test to check the CASTEP server Method is working correctly with a given ml model.
@@ -158,18 +156,15 @@ def test_ServerMethod(request):
         try:
             proc = subprocess.run(apptainer_command, shell=True,check=True)
         except subprocess.CalledProcessError as e:
-            print(f"An error occurred. Container exited with the exit code {e.returncode}:")
-            print(e)
-            raise e
-        assert proc.returncode==0
+            pytest.fail(f"Container start failed with error: {e}")
+            return
+        
         # run castep
         apptainer_command = f"castep.serial Input_files/graphene"
         try:
             proc = subprocess.run(apptainer_command, shell=True,check=True)
         except subprocess.CalledProcessError as e:
-            print(f"An error occurred. Container exited with the exit code {e.returncode}:")
-            print(e)
-            raise e
+            pytest.fail(f"An error occurred: {e} Container exited with the exit code {e.returncode}:")
         finally:
             # always cleanup but only the container if we built it during the test
             if cleanup_container:
