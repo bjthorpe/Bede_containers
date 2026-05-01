@@ -1,5 +1,4 @@
 import argparse
-import argcomplete
 from pathlib import Path
 import subprocess, sys, yaml
 from dataclasses import dataclass, field
@@ -561,8 +560,7 @@ def parse_cmd_arguments(Model_names):
         "--version",
         action="version",
         version=__version__,
-    )   
-    argcomplete.autocomplete(parser)
+    )
     args = parser.parse_args()
     return args
 
