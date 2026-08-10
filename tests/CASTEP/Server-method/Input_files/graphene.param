@@ -1,0 +1,38 @@
+task : spectral  !bandstructure
+spectral_task : bandstructure
+
+# Exchange correlation
+xc_functional : PBE
+
+# Plane wave cutoff
+cut_off_energy : 500 eV
+
+# SCF settings
+max_scf_cycles : 100
+elec_energy_tol : 1e-6
+
+# Smearing (graphene is semi-metal)
+smearing_width : 0.1 eV
+smearing_scheme : gaussian
+
+# Diagonalization
+mixing_scheme : Pulay
+mix_charge_amp : 0.5
+
+# Output options
+write_bands : true
+write_orbitals : false
+
+# Geometry
+spin_polarized : false
+
+# required for socket interface
+socket_port 5000 
+socket_host 127.0.0.1
+
+%BLOCK devel_code
+   PP=T
+   PP:
+      SOC=T
+   :ENDPP
+%ENDBLOCK devel_code

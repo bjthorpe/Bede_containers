@@ -1,0 +1,157 @@
+#####################################################
+Bootstrap: docker
+From: python:3.11
+
+%files
+    {{ toolkit_home }}/Scripts/HAProxy.cfg cfg/
+    {{ toolkit_home }}/Scripts/ML_server.py prediction/
+    {{ toolkit_home }}/Scripts/Matbench_Models.py prediction/
+    {{ toolkit_home }}/Scripts/utility prediction/utility
+    {{ toolkit_home }}/Scripts/server prediction/server
+    {{ toolkit_home }}/Definitions/Meta/req_omat.txt requirements.txt
+
+# Actual final container
+%post -c /bin/bash
+# directory to store HFmodels
+    mkdir /Models
+    export HF_HOME=/Models
+    export HF_HUB_CACHE=/Models/hub
+
+# update and install dependencies
+    python3 -m venv /envs/OMAT24 && \
+    source /envs/OMAT24/bin/activate
+    apt -y update && \
+    apt install -y curl git g++ haproxy
+    pip3 install -r requirements.txt &&
+    pip3 install --no-build-isolation torch-sparse==0.6.18 torch-scatter==2.1.2
+
+# login to huggingface to shut it up
+    hf auth login --token {{ HF_AUTH }}
+#  download models with the provided API key.
+    echo "Downloading model file {{ checkpoint_file }}"
+# tie downloads to latest git commit to avoid any stupid behaviour 
+# if meta decide to update things
+    GITHASH=8a5a78c7ba7b250a17e85fe85943c4608499d895
+    hf download --revision ${GITHASH} --token {{ HF_AUTH }} facebook/OMAT24 {{ checkpoint_file }}
+# find and move symlink to model to make it easier to work with
+    find /Models -iname {{ checkpoint_file }} -exec bash -c 'cp $0 /Models' {} \;
+# make blank dir in container for mounting toolkit_home to for use with --sandbox
+    mkdir -p {{ toolkit_home }}
+##########################################################################
+
+%startscript
+    set -eu
+    # send stdout and stderr to toolkit home 
+    if [ -z "$OUTPUT_FILE" ]; then
+        OUTPUT_FILE={{ toolkit_home }}/logs/{{ model_name }}
+        echo "writing output to ${OUTPUT_FILE}">&2
+
+    elif ! touch "${OUTPUT_FILE}.out" 2>/dev/null; then
+            echo "Cannot write to $OUTPUT_FILE" >&2
+            OUTPUT_FILE={{ toolkit_home }}/logs/{{ model_name }}
+            echo "writing output to ${OUTPUT_FILE} instead" >&2
+    else
+        echo "writing output to ${OUTPUT_FILE}" >&2
+    fi
+
+    # force std out/stderr to go to $OUTPUT_FILE not ~/.apptainer
+    exec > ${OUTPUT_FILE}.out 2> ${OUTPUT_FILE}.err
+    # start with sensible defaults
+    LISTEN_PORT=5000
+    TIMEOUT_OVERWRITE=60
+    NUM_SERVERS=1
+    # get model name from the yaml file
+    MODEL={{ model_name }}
+
+    # go through arguments and set variables as appropriate
+    while getopts "hp:t:N:m:" opt; do
+        case ${opt} in
+        h)
+            echo "Usage: $0 [OPTIONS]"
+            echo "  -h        Show this help message"
+            echo "  -p PORT_NUM    Set TCP port number, must be greater than 1024 (default: 5000)"
+            echo "  -t TIMEOUT   Server timeout in seconds, must be greater than 0 (default: 60)"
+            echo "  -N NUM_SERVERS   Number of python servers to spawn, must be greater than 0 (default: 1)"
+            echo "  -m MODEL_NAME    Specify which model to use, Note: this is only intended for use with"
+            echo "                   the OMAT24 container as this has multiple models installed."
+            exit 0
+            ;;
+        p)
+            if [ "${OPTARG}" -gt 1024 ] 2>/dev/null; then
+                LISTEN_PORT=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <port> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
+            
+        ;;
+        t)
+            if [ "${OPTARG}" -gt 0 ] 2>/dev/null; then
+                TIMEOUT_OVERWRITE=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <timeout> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
+        ;;
+        N)
+            if [ "${OPTARG}" -gt 0 ] 2>/dev/null; then
+                NUM_SERVERS=${OPTARG}
+            else
+                echo -e "\n\nERROR: Input variable <NServers> (given ${OPTARG}) not valid\n\n" >&2
+                exit 11
+            fi
+        ;;
+        m)
+            
+            if [  ${MODEL} == "OMAT24" ]; then
+                MODEL=${OPTARG}
+            elif [  ${MODEL} == ${OPTARG} ]; then
+                echo "WARNING: You appear to be using --model in a container that has only one model."
+                echo "             This is unnecessary and has as such been ignored."
+            else
+                echo -e "\n\nERROR: Input variable <NServers> (given ${OPTARG}) is not valid\n" >&2
+                echo -e " The model ${OPTARG} is not installed in this container.\n\n" >&2
+                exit 11
+            fi
+        ;;
+        ?)
+        echo "Invalid option: -${OPTARG}." >&2
+        exit 1
+        ;;
+        esac
+    done
+
+    MAX_CONNS=$(($NUM_SERVERS*3))
+
+    # Start the python environment
+    . /envs/OMAT24/bin/activate
+
+    # Move the base HAProxy config and server script to tmp for modification
+    cp /cfg/HAProxy.cfg /tmp/HAProxy_${LISTEN_PORT}.cfg
+    echo "" >> /tmp/HAProxy_${LISTEN_PORT}.cfg
+
+    # Add the load balancer listen port to the current instance config
+    sed -i "s/LISTEN_PORT/${LISTEN_PORT}/g" /tmp/HAProxy_${LISTEN_PORT}.cfg
+    sed -i "s/MAX_CONNS/${MAX_CONNS}/g" /tmp/HAProxy_${LISTEN_PORT}.cfg
+
+    # Modify the general timeout time in both HAproxy and the server script
+    sed -i "s/TIMEOUT_OVERWRITE/${TIMEOUT_OVERWRITE}/g" /tmp/HAProxy_${LISTEN_PORT}.cfg
+
+    # Create the number of servers given and add these to the config file
+    s=1
+    while [ $s -le $NUM_SERVERS ]; do
+        # Create a python server
+	python3 /prediction/ML_server.py -P $(($LISTEN_PORT+$s)) -L info -T ${TIMEOUT_OVERWRITE} -M ${MODEL} &
+	# Add it to the HAProxy config (in tmp)
+	echo "    server p${s} 127.0.0.1:$(($LISTEN_PORT+$s))" >> /tmp/HAProxy_${LISTEN_PORT}.cfg
+	s=$((s+1))
+    done
+
+    # Run server in Daemon mode (using modified config file in tmp)
+    haproxy -f /tmp/HAProxy_${LISTEN_PORT}.cfg -D >> {{ toolkit_home }}/logs/HAProxy.log 2>&1
+
+%environment
+    export HF_HOME=/Models
+    export HF_HUB_CACHE=/Models/hub
+    export PATH="/envs/OMAT24/bin:$PATH"
+    export FAIRCHEM_CACHE_DIR=/Models/hub

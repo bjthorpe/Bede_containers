@@ -1,7 +1,0 @@
-# Config file for MatterSim
-
-MatterSim:
-  description: 'Mattersim example container, pinched from castep26.'
-  group: MatterSim
-  image_file: Images/MatterSim/MatterSim.sif
-  container_definition: Definitions/MatterSim/MatterSim.def

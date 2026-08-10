@@ -1,0 +1,81 @@
+# Config file for MatterSim
+
+PET-OAM-XL:
+  description: 'extra Large version of PET-OAM, Note: this is the Model submitted to Matbench discovery. trained on OMat -> sAlex+MPtrj. Recommend for material discovery tasks (convex hull energies, geometry optimization, phonons, etc).'
+  groups: ['MatBench','UPET']
+  image_file: Images/UPET/PET-OAM-XL.sif
+  container_definition: Definitions/UPET/UPET.def
+  build_options: {'checkpoint_file':'pet-oam-xl-v1.0.0.ckpt', 'model_name':'PET-OAM-XL'}
+  CASTEP: True
+
+PET-OAM-L:
+  description: 'Large version of PET-OAM UPET Model trained on OMat -> sAlex+MPtrj. Recommend for material discovery tasks (convex hull energies, geometry optimization, phonons, etc)'
+  groups: ['UPET']
+  image_file: Images/UPET/PET-OAM-L.sif
+  container_definition: Definitions/UPET/UPET.def
+  build_options: {'checkpoint_file':'pet-oam-l-v0.1.0.ckpt', 'model_name':'PET-OAM-L'}
+  CASTEP: True
+
+PET-OMAT-M:
+  description: 'Medium version of UPET Model V1.0.0 trained on just OMat dataset.'
+  groups: ['UPET']
+  image_file: Images/UPET/PET-OMAT-L.sif
+  container_definition: Definitions/UPET/UPET.def
+  build_options: {'checkpoint_file':'pet-omat-l-v1.0.0.ckpt', 'model_name':'PET-OMAT-L'}
+  CASTEP: True
+
+PET-OMAT-XL:
+  description: 'extra large version of UPET Model V1.0.0 trained on just OMat dataset.'
+  groups: ['UPET']
+  image_file: Images/UPET/PET-OMAT-XL.sif
+  container_definition: Definitions/UPET/UPET.def
+  build_options: {'checkpoint_file':'pet-omat-xl-v1.0.0.ckpt', 'model_name':'PET-OMAT-XL'}
+  CASTEP: True
+
+PET-OMAT-S:
+  description: 'small version UPET Model V1.0.0 trained on just OMat dataset.'
+  groups: ['UPET']
+  image_file: Images/UPET/PET-OMAT-S.sif
+  container_definition: Definitions/UPET/UPET.def
+  build_options: {'checkpoint_file':'pet-omat-s-v1.0.0.ckpt', 'model_name':'PET-OMAT-S'}
+  CASTEP: True
+
+PET-OMAT-XS:
+  description: 'extra small vesion of UPET Model V1.0.0 trained on just OMat dataset.'
+  groups: ['UPET']
+  image_file: Images/UPET/PET-OMAT-XS.sif
+  container_definition: Definitions/UPET/UPET.def
+  build_options: {'checkpoint_file':'pet-omat-xs-v1.0.0.ckpt', 'model_name':'PET-OMAT-XS'}
+  CASTEP: True
+
+PET-MAD-S:
+  description: 'UPET PET-MAD Model V1.5 trained on just OMat and MAD-1.5 dataset. Recommend for molecular dynamics simulations of materials, surfaces, interfaces, solutions, metal complexes and other challenging systems.'
+  groups: ['UPET']
+  image_file: Images/UPET/PET-MAD-1.5-S.sif
+  container_definition: Definitions/UPET/UPET.def
+  build_options: {'checkpoint_file':'pet-mad-s-v1.5.0.ckpt', 'model_name':'PET-MAD-1.5-S'}
+  CASTEP: True
+
+PET-MAD-XS:
+  description: 'small version of UPET PET-MAD Model V1.5 trained on just OMat and MAD-1.5 dataset. Recommend for molecular dynamics simulations of materials, surfaces, interfaces, solutions, metal complexes and other challenging systems.'
+  groups: ['UPET']
+  image_file: Images/UPET/PET-MAD-1.5-XS.sif
+  container_definition: Definitions/UPET/UPET.def
+  build_options: {'checkpoint_file':'pet-mad-xs-v1.5.0.ckpt', 'model_name':'PET-MAD-1.5-XS'}
+  CASTEP: True
+
+PET-SPICE-L:
+  description: 'UPET Large PET-SPICE Model trained on SPICE dataset. Recommend for accurate and fast simulations of molecules and biomolecules.'
+  groups: ['UPET']
+  image_file: Images/UPET/PET-SPICE-L.sif
+  container_definition: Definitions/UPET/UPET.def
+  build_options: {'checkpoint_file':'pet-spice-l-v0.2.0.ckpt', 'model_name':'PET-SPICE-L'}
+  CASTEP: True
+
+PET-SPICE-S:
+  description: 'UPET small PET-SPICE Model trained on SPICE dataset. Recommend for accurate and fast simulations of molecules and biomolecules.'
+  groups: ['UPET']
+  image_file: Images/UPET/PET-SPICE-S.sif
+  container_definition: Definitions/UPET/UPET.def
+  build_options: {'checkpoint_file':'pet-spice-s-v0.2.0.ckpt', 'model_name':'PET-SPICE-S'}
+  CASTEP: True

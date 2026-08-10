@@ -1,0 +1,20 @@
+# Config file for pre-trained models from Tensor Atomic Cluster Expansion (TACE)
+# Full details of available models can be found at https://github.com/xvzemin/tace
+
+
+TACE-OMat24-L:
+  description: 'Large Two-layer semi-local model, pre-trained on OMat24 and then fine-tuned on a combination of the sAlex dataset and the MPtraj dataset.' 
+  groups: ['TACE']
+  image_file: Images/TACE/TACE-OMat24-L.sif
+  container_definition: Definitions/TACE/TACE.def
+  build_options: {'model_name':'TACE-OMat24-L','model_url':'https://huggingface.co/xvzemin/tace-foundations/resolve/main/TACE-OMAT24-L.pt'}
+  CASTEP: True
+
+TACE-OAM-L:
+  description: 'Small Two-layer semi-local model, pre-trained on OMat24 and then fine-tuned on a combination of the sAlex dataset and the MPtraj dataset.' 
+  groups: ['TACE','Matbench']
+  image_file: Images/TACE/TACE-OAM-L.sif
+  container_definition: Definitions/TACE/TACE.def
+  build_options: {'model_name':'TACE-OAM-L','model_url':'https://huggingface.co/xvzemin/tace-foundations/resolve/main/TACE-OAM-L.pt'}
+  CASTEP: True
+

@@ -1,0 +1,10 @@
+# This is a vaild dummy continer config to test with
+TestContainer:
+  description: 'This container creates a cowsay container for testing'
+  groups: ['Test']
+  container_definition: Definitions/cowsay.def
+  
+TestContainer2:
+  description: 'A simple ubuntu container, pulled from docker'
+  groups: ['Test']
+  container_definition: ubuntu:latest

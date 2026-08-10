@@ -1,7 +1,9 @@
 # tests for loading config file ect..
 import pytest
-from src.check_URI import check_container_def
-
+from bede_containers.check_URI import check_container_def
+import sys
+from pathlib import Path
+from bede_containers.util_functions import get_toolkit_home
 def test_validation_docker():
     uri = 'docker://alpine:latest'
     test = check_container_def(uri)
@@ -14,7 +16,8 @@ def test_validation_oras():
 
 def test_validation_path_rel():
     # test for relative path
-    uri = "Definitions/cowsay.def"
+    toolkit_home = get_toolkit_home()
+    uri = f"{toolkit_home}/Definitions/cowsay.def"
     test = check_container_def(uri)
     assert test == uri
    

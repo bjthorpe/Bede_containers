@@ -1,12 +1,15 @@
 [project]
-name = "bede-containers"
-version = "0.1.0"
+name = "bede-ml-toolkit"
+version = "1.0.4"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.9"
 dependencies = [
     "dacite>=1.9.2",
+    "pathlib>=1.0.1",
+    "pytest>=8.4.2",
     "pyyaml>=6.0.3",
+    "argcomplete",
 ]
 
 [project.optional-dependencies]
@@ -14,7 +17,20 @@ pytest = []
 
 [dependency-groups]
 dev = [
-    "black>=26.1.0",
-    "pytest>=9.0.2",
+    "black>=25.11.0",
+    "pytest>=8.4.2",
     "pytest-cov>=7.0.0",
 ]
+
+[project.scripts]
+ml-toolkit = "bede_containers:main"
+install_ml-toolkit = "setup:create_toolkit_home"
+install_apptainer = "setup:install_apptainer"
+
+[build-system]
+requires = ["uv_build>=0.8.23,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+source-include = ["Data/API_Keys/*","Data/Container_Configs/*","Data/Definitions/*/*","Data/Scripts/*/*"]
+module-name = ["bede_containers", "setup"]

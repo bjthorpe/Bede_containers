@@ -1,0 +1,31 @@
+%BLOCK LATTICE_CART
+       5.43       0.00       0.00
+       0.00       5.43       0.00
+       0.00       0.00       5.43
+%ENDBLOCK LATTICE_CART
+
+%BLOCK POSITIONS_FRAC
+ Si   0.00   0.00   0.00
+ Si   0.00   0.50   0.50
+ Si   0.50   0.00   0.50
+ Si   0.50   0.50   0.00
+ Si   0.75   0.25   0.75
+ Si   0.25   0.25   0.25
+ Si   0.25   0.75   0.75
+ Si   0.75   0.75   0.25
+%ENDBLOCK POSITIONS_FRAC
+
+# CASTEP requires a pspot file to use, but pair pot's do not utilise it
+# As such any pspot file can be loaded
+%BLOCK species_pot
+C19
+%ENDBLOCK species_pot
+
+# Can do a gamma only calculation as external script (ML etc) do not care about this
+# however, gamma only calcualtions need less in the way of initialisation
+kpoint_mp_grid 1 1 1
+
+# Add a fair bit of noise to give the geometry optimisation something to do
+positions_noise = 0.25 Ang
+cell_noise      = 0.10 Ang
+

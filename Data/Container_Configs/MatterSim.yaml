@@ -1,0 +1,9 @@
+# Config file for MatterSim
+
+MatterSim_V1_5M:
+  description: 'Mattersim example container, pinched from castep26.'
+  groups: ['MatBench','MatterSim']
+  image_file: Images/MatterSim/MatterSim_V1_5M.sif
+  container_definition: Definitions/MatterSim/MatterSim.def
+  build_options: {'model_name':'MatterSim_V1_5M'}
+  CASTEP: True

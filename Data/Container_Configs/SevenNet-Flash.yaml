@@ -1,0 +1,125 @@
+# Config file for pre-trained models from Sevennet with FlashTP acceleration
+# full details of available models can be found here: 
+# https://sevennet.readthedocs.io/en/latest/user_guide/pretrained.html#sevennet-omat
+#########################################################################
+# Note These containers require an Nvidia GPU:
+# CUDA_ARCH refers to the CUDA “compute capability” 
+#
+# in essence It tells the Nvidia CUDA compiler:
+# “Generate GPU code optimized for these specific GPU architectures to 
+#  ensure maximum performance."
+#
+# Each number corresponds to a compute capability version of different NVIDIA GPUs.
+# This allows the compiler to optimise for your specific hardware.
+# you can also compile for multiple generations by specifying a list separated by 
+# semi-colons.
+#
+# TLDR: You can set this to the exact model of GPU you have if you know it to speed up 
+# the build/compile process and get max performance. 
+# Also if using multiple gpus we recommend to only include the ones you intend to use 
+# to massively speed up the compile process.
+#
+# ******************************************************************************
+# IF YOU ARE UNSURE!!!
+# The default CUDA_ARCH='75;80;86;89;90' covers most modern GPUs and is a good 
+# starting place although it may take a while to build/compile.
+#
+# Alternatively you can use CUDA_ARCH='auto' to detect the current gpu hardware.
+# However the resulting container will then only work on that specific machine.
+# ******************************************************************************
+#
+# Current Possible values:
+#########################################################################################
+#   auto → attempt to automatically detect for current GPU hardware, useful if you are 
+#         unsure. However, this makes the container less portable. Also this wont work 
+#         on Bede as we don't have GPU access on the login nodes.
+#
+# Latest / current generations (Nvidia Blackwell):
+#   120 → Blackwell (RTX 50xx, RTX PRO Blackwell)
+#   110 → Jetson Thor / newest embedded gpus
+#   103 → GB300/B300
+#   100 → GB200/B200
+#   90 → (Grace) Hopper (H100, GH100, GH200)
+#
+# Ada / Ampere era:
+#   89 → Ada Lovelace (RTX 40xx)
+#   87 → Jetson Orin
+#   86 → Ampere (RTX 30xx, A40, A10)
+#   80 → Ampere (A100)
+#
+# Turing / Volta:
+#   75 → Turing (RTX 20xx, T4, GTX 16xx)
+#   72 →  Jetson Xavier
+#   70 → Volta (V100)
+#
+# Legacy (Pascal / Maxwell) Note: these are still supported but will likely not perform well
+#   62, 61, 60 → Pascal (P100, GTX 10xx)
+#   53, 52, 50 → Maxwell / 2019 Jetson Nano
+#
+# Or see The full list: https://developer.nvidia.com/cuda/gpus
+#################################################################################
+SevenNet-Omni-Flash:
+  description: 'SevenNet Recommend model trained on 15 ab-initio datasets' 
+  groups: ['SevenNet','Flash']
+  image_file: Images/SevenNet/SevenNet-Omni-Flash.sif
+  container_definition: Definitions/SevenNet/FlashTP.def
+  build_options: {'model_name':'SevenNet-Omni','CUDA_ARCH':'75;80;86;89;90'}
+  CASTEP: True
+  available_tasks: ['mpa','omat24','matpes_pbe','oc20','oc22','odac23','omol25_low','omol25_high','spice','qcml','pet_mad','mp r2scan','matpes_r2scan']
+
+SevenNet-Omni-i8-Flash:
+  description: 'SevenNet-Omni-i8 follows the same training strategy as SevenNet-Omni, except with an increased model capacity.' 
+  groups: ['SevenNet','Flash']
+  image_file: Images/SevenNet/SevenNet-Omni-i8-Flash.sif
+  container_definition: Definitions/SevenNet/FlashTP.def
+  build_options: {'model_name':'SevenNet-Omni-i8','CUDA_ARCH':'75;80;86;89;90'}
+  CASTEP: True
+  available_tasks: ['mpa','omat24','matpes_pbe','oc20','oc22','odac23','omol25_low','omol25_high','spice','qcml','pet_mad','mp r2scan','matpes_r2scan']
+
+SevenNet-Omni-i12-Flash:
+  description: 'SevenNet-Omni-i12 follows the same training strategy as SevenNet-Omni, except with an increased model capacity.' 
+  groups: ['SevenNet','Flash']
+  image_file: Images/SevenNet/SevenNet-Omni-i12-Flash.sif
+  container_definition: Definitions/SevenNet/FlashTP.def
+  build_options: {'model_name':'SevenNet-Omni-i12','CUDA_ARCH':'75;80;86;89;90'}
+  CASTEP: True
+  available_tasks: ['mpa','omat24','matpes_pbe','oc20','oc22','odac23','omol25_low','omol25_high','spice','qcml','pet_mad','mp r2scan','matpes_r2scan']
+
+SevenNet-MF-ompa-Flash:
+  description: 'SevenNet Model trained on the MPtrj, sAlex and OMat24 datasets.' 
+  groups: ['SevenNet','Flash']
+  image_file: Images/SevenNet/SevenNet-MF-ompa-Flash.sif
+  container_definition: Definitions/SevenNet/FlashTP.def
+  build_options: {'model_name':'SevenNet-MF-ompa','CUDA_ARCH':'75;80;86;89;90'}
+  CASTEP: True
+  available_tasks: ['mpa','omat24']
+
+SevenNet-omat-Flash:
+  description: 'SevenNet Model trained on just the OMat24 dataset. outperforms SevenNet-l3i5 on most tasks, except for the isolated molecule energy.' 
+  groups: ['SevenNet','Flash']
+  image_file: Images/SevenNet/SevenNet-omat-Flash.sif
+  container_definition: Definitions/SevenNet/FlashTP.def
+  build_options: {'model_name':'SevenNet-omat','CUDA_ARCH':'75;80;86;89;90'}
+  CASTEP: True
+
+SevenNet-0-Flash:
+  description: 'early pre-trained model trained on the MPtrj dataset. Sevennet recommend using newer and more accurate models, it can still be useful in certain cases due to its short inference time.' 
+  groups: ['SevenNet','Flash']
+  image_file: Images/SevenNet/SevenNet-0-Flash.sif
+  container_definition: Definitions/SevenNet/FlashTP.def
+  build_options: {'model_name':'SevenNet-0','CUDA_ARCH':'75;80;86;89;90'}
+  CASTEP: True
+
+SevenNet-l3i5-Flash:
+  description: 'This model increases the maximum spherical harmonic degree (lmax) to 3, compared to SevenNet-0, which has an lmax of 2. While l3i5 offers improved accuracy for various systems, it is approximately four times slower than SevenNet-0.'
+  groups: [SevenNet','Flash']
+  image_file: Images/SevenNet/SevenNet-l3i5-Flash.sif
+  container_definition: Definitions/SevenNet/FlashTP.def 
+  build_options: {'model_name':'SevenNet-l3i5','CUDA_ARCH':'75;80;86;90'}
+  CASTEP: True
+
+EquFlash:
+    description: 'Note: This is a placeholder. Unfortunately EquFlash is not available at this time as the Developers have chosen not to release a pre-trained checkpoint. All we have to go on is its a scaled-up model derived from SevenNet-0 accelerated with FlashTP. As such please use one of the other flash enabled models.'
+    groups: ['MatBench','Flash']
+    image_file: Images/SevenNet/EquFlash-Flash.sif
+    container_definition: Definitions/SevenNet/FlashTP.def

@@ -1,0 +1,9 @@
+# Config file for MatterSim
+
+CHGNet:
+  description: 'CHGNet example container, adapted from castep26.'
+  groups: ['MatBench','CHGNet']
+  image_file: Images/CHGNet/CHGNet.sif
+  container_definition: Definitions/CHGNet/CHGNet.def
+  CASTEP: True
+  
