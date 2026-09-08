@@ -451,7 +451,7 @@ def format_command(
 
             #pass in task argument if needed
             if CMD_Options['task'] !='':
-                task=f'-T {CMD_Options['task']}'
+                task=f"-T {CMD_Options['task']}"
             else:
                 task=''
             cmd = f"-p {CMD_Options['port']} -t {CMD_Options['timeout']} -N {CMD_Options['num_servers']} {task}"
